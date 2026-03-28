@@ -99,11 +99,13 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  let accessToken = await getAccessToken(supabase);
+  // Try cookie first (set during OAuth callback), then fall back to session
+  let accessToken = cookieStore.get("spotify_access_token")?.value
+    ?? await getAccessToken(supabase);
 
   if (!accessToken) {
     return NextResponse.json(
-      { error: "Not authenticated" },
+      { error: "Not authenticated — no Spotify token. Try logging in again." },
       { status: 401 }
     );
   }

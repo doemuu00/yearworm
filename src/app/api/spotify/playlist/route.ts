@@ -44,11 +44,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const accessToken = session.provider_token;
+  // Try cookie first (set during OAuth callback), then fall back to session
+  const accessToken = cookieStore.get("spotify_access_token")?.value
+    ?? session.provider_token;
 
   if (!accessToken) {
     return NextResponse.json(
-      { error: "No Spotify access token available" },
+      { error: "No Spotify access token available. Try logging in again." },
       { status: 401 }
     );
   }

@@ -33,7 +33,9 @@ export async function POST() {
     );
   }
 
-  const refreshToken = session.provider_refresh_token;
+  // Try cookie first, then session
+  const refreshToken = cookieStore.get("spotify_refresh_token")?.value
+    ?? session.provider_refresh_token;
 
   if (!refreshToken) {
     return NextResponse.json(
@@ -68,8 +70,19 @@ export async function POST() {
 
   const data = await response.json();
 
-  return NextResponse.json({
+  // Save new access token to cookie
+  const jsonResponse = NextResponse.json({
     access_token: data.access_token,
     expires_in: data.expires_in,
   });
+
+  jsonResponse.cookies.set("spotify_access_token", data.access_token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: data.expires_in ?? 3600,
+    path: "/",
+  });
+
+  return jsonResponse;
 }
