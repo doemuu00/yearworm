@@ -13,14 +13,15 @@ import GameBoard from '@/components/game/GameBoard';
 import TurnIndicator from '@/components/game/TurnIndicator';
 import ScoreBoard from '@/components/game/ScoreBoard';
 import ChallengeModal from '@/components/game/ChallengeModal';
+import PlacementResult from '@/components/game/PlacementResult';
 import WinScreen from '@/components/game/WinScreen';
 import PassAndPlayInterstitial from '@/components/game/PassAndPlayInterstitial';
 import Button from '@/components/ui/Button';
 
-import type { Team } from '@/lib/game/types';
+import type { Team, PlacedSong } from '@/lib/game/types';
 
 /* ── Phase type for local UI state ─────────────────────── */
-type Phase = 'playing' | 'challenge-window' | 'pass-device' | 'game-over';
+type Phase = 'playing' | 'challenge-window' | 'showing-result' | 'pass-device' | 'game-over';
 
 /* ── Team color helper ─────────────────────────────────── */
 const getTeamColor = (team: Team) =>
@@ -63,6 +64,13 @@ export default function GamePage() {
   const [songReady, setSongReady] = useState(false);
   // Track the team whose turn we're showing (to support pass-device correctly)
   const activeTeamRef = useRef<Team>(currentTeam);
+  // Placement result overlay state
+  const [placementResult, setPlacementResult] = useState<{
+    song: PlacedSong;
+    placingTeam: Team;
+    wasChallenged: boolean;
+    challengeSucceeded?: boolean;
+  } | null>(null);
 
   /* ── Audio ────────────────────────────────────────────── */
   const audio = useAudio();
@@ -71,12 +79,20 @@ export default function GamePage() {
   const handleChallengeTimeout = useCallback(() => {
     endChallengeWindow();
     setRevealed(true);
-    // Brief delay so players can see the result, then move to pass-device
-    setTimeout(() => {
+    // Show placement result overlay instead of brief delay
+    if (lastPlacedSong && lastPlacedTeam) {
+      setPlacementResult({
+        song: lastPlacedSong,
+        placingTeam: lastPlacedTeam,
+        wasChallenged: false,
+      });
+      setPhase('showing-result');
+      audio.stop();
+    } else {
       setPhase('pass-device');
       audio.stop();
-    }, 1500);
-  }, [endChallengeWindow, audio]);
+    }
+  }, [endChallengeWindow, audio, lastPlacedSong, lastPlacedTeam]);
 
   const challengeTimer = useTimer({ onTimeout: handleChallengeTimeout });
 
@@ -156,27 +172,46 @@ export default function GamePage() {
 
   const handleChallenge = useCallback(() => {
     challengeTimer.stopTimer();
+    // Capture placement correctness before challengePlacement mutates state
+    const wasPlacedCorrectly = lastPlacedSong?.placedCorrectly ?? false;
     challengePlacement();
     setRevealed(true);
 
-    // Brief delay to show result, then pass device
-    setTimeout(() => {
+    // Show placement result overlay
+    if (lastPlacedSong && lastPlacedTeam) {
+      setPlacementResult({
+        song: lastPlacedSong,
+        placingTeam: lastPlacedTeam,
+        wasChallenged: true,
+        challengeSucceeded: !wasPlacedCorrectly, // challenger succeeds when placement was wrong
+      });
+      setPhase('showing-result');
+      audio.stop();
+    } else {
       setPhase('pass-device');
       audio.stop();
-    }, 2000);
-  }, [challengePlacement, challengeTimer, audio]);
+    }
+  }, [challengePlacement, challengeTimer, audio, lastPlacedSong, lastPlacedTeam]);
 
   const handleDismissChallenge = useCallback(() => {
     challengeTimer.stopTimer();
     endChallengeWindow();
     setRevealed(true);
 
-    // Brief delay to show result, then pass device
-    setTimeout(() => {
+    // Show placement result overlay
+    if (lastPlacedSong && lastPlacedTeam) {
+      setPlacementResult({
+        song: lastPlacedSong,
+        placingTeam: lastPlacedTeam,
+        wasChallenged: false,
+      });
+      setPhase('showing-result');
+      audio.stop();
+    } else {
       setPhase('pass-device');
       audio.stop();
-    }, 1500);
-  }, [endChallengeWindow, challengeTimer, audio]);
+    }
+  }, [endChallengeWindow, challengeTimer, audio, lastPlacedSong, lastPlacedTeam]);
 
   const handleSkip = useCallback(() => {
     if (currentTeamTokens < (settings.tokensToSkip ?? 1)) return;
@@ -189,6 +224,11 @@ export default function GamePage() {
     // Skip goes straight to pass-device (turn already advanced by skipSong)
     setPhase('pass-device');
   }, [currentTeamTokens, settings.tokensToSkip, turnTimer, audio, skipSong]);
+
+  const handleResultDismiss = useCallback(() => {
+    setPlacementResult(null);
+    setPhase('pass-device');
+  }, []);
 
   const handlePassDeviceReady = useCallback(() => {
     activeTeamRef.current = currentTeam;
@@ -313,6 +353,16 @@ export default function GamePage() {
         onChallenge={handleChallenge}
         onDismiss={handleDismissChallenge}
         timeRemaining={challengeTimer.timeRemaining}
+      />
+
+      {/* ── Modal: Placement result overlay ───────────── */}
+      <PlacementResult
+        isOpen={phase === 'showing-result' && placementResult !== null}
+        song={placementResult?.song ?? null}
+        placingTeam={placementResult?.placingTeam ?? null}
+        wasChallenged={placementResult?.wasChallenged ?? false}
+        challengeSucceeded={placementResult?.challengeSucceeded}
+        onDismiss={handleResultDismiss}
       />
 
       {/* ── Modal: Pass-and-play interstitial ───────────── */}
