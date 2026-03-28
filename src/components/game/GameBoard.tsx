@@ -74,13 +74,17 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
       aria-roledescription="draggable"
     >
       {/* Blurred album art (mystery style) */}
-      <img
-        src={song.albumArtUrl}
-        alt="Mystery song"
-        className="w-full h-full object-cover"
-        style={{ filter: 'blur(16px) brightness(0.5)' }}
-        draggable={false}
-      />
+      {song.albumArtUrl ? (
+        <img
+          src={song.albumArtUrl}
+          alt="Mystery song"
+          className="w-full h-full object-cover"
+          style={{ filter: 'blur(16px) brightness(0.5)' }}
+          draggable={false}
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
+      )}
 
       {/* Border glow */}
       <div

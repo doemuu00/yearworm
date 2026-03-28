@@ -1,0 +1,75 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e27] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=e28]:
+      - img [ref=e29]
+    - generic [ref=e114]:
+      - button "Open issues overlay" [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e117]: "1"
+          - generic [ref=e118]: "2"
+        - generic [ref=e119]:
+          - text: Issue
+          - generic [ref=e120]: s
+      - button "Collapse issues badge" [ref=e121]:
+        - img [ref=e122]
+  - alert [ref=e32]
+  - generic [ref=e124]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - generic [ref=e127]:
+          - generic [ref=e129]:
+            - generic [ref=e130]: Team A
+            - generic [ref=e131]:
+              - img [ref=e132]:
+                - generic [ref=e135]: T
+              - generic [ref=e136]: "0"
+          - generic [ref=e138]:
+            - generic [ref=e139]: "0"
+            - generic [ref=e140]: / 5
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: Team B
+            - generic [ref=e145]:
+              - img [ref=e146]:
+                - generic [ref=e149]: T
+              - generic [ref=e150]: "0"
+          - generic [ref=e152]:
+            - generic [ref=e153]: "0"
+            - generic [ref=e154]: / 5
+      - generic [ref=e156]:
+        - generic [ref=e160]: Team A's Turn
+        - generic [ref=e161]:
+          - img [ref=e162]
+          - generic [ref=e165]: 29s
+    - generic [ref=e167]:
+      - generic [ref=e168]:
+        - img [ref=e170]
+        - button [disabled] [ref=e176]:
+          - img [ref=e178]
+      - generic [ref=e182]: 0s / 15s
+      - paragraph [ref=e183]: No preview available
+    - generic [ref=e184]:
+      - generic [ref=e185]:
+        - generic [ref=e186]:
+          - heading "Team A Timeline" [level=3] [ref=e187]
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - img "Poker Face" [ref=e193]
+              - generic [ref=e194]:
+                - paragraph [ref=e195]: Poker Face
+                - paragraph [ref=e196]: Lady Gaga
+              - generic [ref=e197]: ✓
+            - generic [ref=e198]: "2008"
+        - generic [ref=e199]:
+          - paragraph [ref=e200]: Current Song
+          - button "Drag this song onto the timeline" [ref=e201]:
+            - img "Mystery song" [ref=e202]
+            - generic [ref=e204]:
+              - generic [ref=e205]: "?"
+              - generic [ref=e206]: Drag me
+          - paragraph [ref=e207]: Drag onto the timeline to place
+      - status [ref=e208]
+    - generic [ref=e209]:
+      - button "Skip (1 token)" [disabled]:
+        - img
+        - text: Skip (1 token)

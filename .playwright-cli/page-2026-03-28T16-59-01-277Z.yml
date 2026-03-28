@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
+  - alert [ref=e32]
+  - generic [ref=e34]:
+    - button "Back to Home" [ref=e35]:
+      - img [ref=e36]
+      - text: Back to Home
+    - heading "Game Setup" [level=1] [ref=e38]
+    - generic [ref=e39]:
+      - generic [ref=e41]:
+        - img [ref=e43]
+        - generic [ref=e45]: Playlist
+      - generic [ref=e48]:
+        - img [ref=e95]
+        - generic [ref=e50]: Settings
+      - generic [ref=e53]:
+        - generic [ref=e54]: "3"
+        - generic [ref=e55]: Teams
+    - generic [ref=e97]:
+      - generic [ref=e98]:
+        - generic [ref=e99]:
+          - heading "Team A" [level=3] [ref=e102]
+          - generic [ref=e103]: Team Name
+          - textbox "Team A" [ref=e104]
+        - generic [ref=e105]:
+          - heading "Team B" [level=3] [ref=e108]
+          - generic [ref=e109]: Team Name
+          - textbox "Team B" [ref=e110]
+      - generic [ref=e111]:
+        - button "Back" [ref=e112]
+        - button "Start Game" [ref=e113]

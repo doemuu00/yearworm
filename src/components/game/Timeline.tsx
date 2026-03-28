@@ -99,12 +99,16 @@ function PlacedCard({ song, team, index }: PlacedCardProps) {
         }}
       >
         {/* Album art */}
-        <img
-          src={song.albumArtUrl}
-          alt={song.title}
-          className="w-full h-full object-cover"
-          draggable={false}
-        />
+        {song.albumArtUrl ? (
+          <img
+            src={song.albumArtUrl}
+            alt={song.title}
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
+        )}
 
         {/* Dark overlay with text */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-1.5">

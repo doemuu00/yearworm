@@ -1,0 +1,8 @@
+- generic [ref=e3]:
+  - img [ref=e5]
+  - heading "Yearworm" [level=1] [ref=e11]
+  - paragraph [ref=e12]: Guess the song, build the timeline
+  - generic [ref=e13]:
+    - button "Create Game" [ref=e14]
+    - button "Quick Play (Demo)" [ref=e15]
+    - button "Join Game" [ref=e16]

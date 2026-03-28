@@ -1,0 +1,54 @@
+- generic [active] [ref=e1]:
+  - button "Open Next.js Dev Tools" [ref=e28] [cursor=pointer]:
+    - img [ref=e29]
+  - alert [ref=e32]
+  - generic [ref=e34]:
+    - button "Back to Home" [ref=e35]:
+      - img [ref=e36]
+      - text: Back to Home
+    - heading "Game Setup" [level=1] [ref=e38]
+    - generic [ref=e39]:
+      - generic [ref=e41]:
+        - img [ref=e43]
+        - generic [ref=e45]: Playlist
+      - generic [ref=e48]:
+        - generic [ref=e49]: "2"
+        - generic [ref=e50]: Settings
+      - generic [ref=e53]:
+        - generic [ref=e54]: "3"
+        - generic [ref=e55]: Teams
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - img [ref=e60]
+        - generic [ref=e62]:
+          - paragraph [ref=e63]: Demo Playlist
+          - paragraph [ref=e64]: 25 songs
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67]:
+            - heading "Cards to Win" [level=4] [ref=e68]
+            - paragraph [ref=e69]: Number of correctly placed songs needed to win the game
+          - generic [ref=e70]:
+            - button "Decrease cards to win" [ref=e71]: −
+            - generic [ref=e72]: "5"
+            - button "Increase cards to win" [ref=e73]: +
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - heading "Clip Duration" [level=4] [ref=e76]
+            - paragraph [ref=e77]: How long each song preview plays before the team must guess
+          - generic [ref=e78]:
+            - button "10s" [ref=e79] [cursor=pointer]
+            - button "15s" [ref=e80] [cursor=pointer]
+            - button "20s" [ref=e81] [cursor=pointer]
+            - button "30s" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - heading "Turn Time Limit" [level=4] [ref=e85]
+            - paragraph [ref=e86]: Maximum time a team has to place their song on the timeline
+          - generic [ref=e87]:
+            - button "30s" [ref=e88] [cursor=pointer]
+            - button "45s" [ref=e89] [cursor=pointer]
+            - button "60s" [ref=e90] [cursor=pointer]
+            - button "90s" [ref=e91] [cursor=pointer]
+            - button "None" [ref=e92] [cursor=pointer]
+      - button "Next" [ref=e94]
