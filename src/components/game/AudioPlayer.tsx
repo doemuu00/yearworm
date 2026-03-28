@@ -266,62 +266,22 @@ export default function AudioPlayer({
               style={{ cursor: 'pointer' }}
             >
               <motion.div
-                className="flex items-center justify-center rounded-full"
+                className="flex items-center justify-center rounded-full text-center"
                 style={{
-                  width: 56,
-                  height: 56,
-                  background: 'rgba(0,0,0,0.6)',
+                  width: 72,
+                  height: 72,
+                  background: 'rgba(0,0,0,0.5)',
                   backdropFilter: 'blur(8px)',
-                  border: '1.5px solid rgba(255,255,255,0.2)',
+                  border: `1.5px solid ${state === 'playing' ? `${teamColor}66` : 'rgba(255,255,255,0.2)'}`,
                 }}
               >
-                {noPreviewFlash ? (
-                  <motion.span
-                    className="text-xs font-medium text-white/60"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    No preview
-                  </motion.span>
-                ) : state === 'playing' ? (
-                  /* Pause icon */
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  /* Play icon (idle or paused) */
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
-                    <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
-                  </svg>
-                )}
+                <span className={`text-xs font-semibold ${state === 'playing' ? 'text-white/80' : 'text-white/60'}`}>
+                  {state === 'idle' ? (previewUrl ? 'Tap to start' : 'Tap to reveal') :
+                   state === 'playing' ? 'Playing...' :
+                   'Paused'}
+                </span>
               </motion.div>
 
-              {/* Label below button */}
-              <AnimatePresence mode="wait">
-                {state === 'idle' && !noPreviewFlash && (
-                  <motion.span
-                    key="idle-label"
-                    className="mt-2 text-xs font-medium text-white/50"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                  >
-                    {previewUrl ? 'Tap to listen' : 'Tap to reveal'}
-                  </motion.span>
-                )}
-                {state === 'paused' && (
-                  <motion.span
-                    key="paused-label"
-                    className="mt-2 text-xs font-medium text-white/40"
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -4 }}
-                  >
-                    Paused
-                  </motion.span>
-                )}
-              </AnimatePresence>
             </motion.button>
 
             {/* Pulsing ring — idle: gentle invite; playing: beat pulse */}
@@ -341,21 +301,39 @@ export default function AudioPlayer({
                 />
               )}
               {state === 'playing' && (
-                <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ border: `2px solid ${teamColor}4d` }}
-                  initial={{ scale: 1, opacity: 0.6 }}
-                  animate={{
-                    scale: [1, 1.08, 1],
-                    opacity: [0.6, 0, 0.6],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
-                  exit={{ opacity: 0, scale: 1.1 }}
-                />
+                <>
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ border: `3px solid ${teamColor}80` }}
+                    initial={{ scale: 1, opacity: 0.8 }}
+                    animate={{
+                      scale: [1, 1.15, 1],
+                      opacity: [0.8, 0, 0.8],
+                    }}
+                    transition={{
+                      duration: 1.0,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                    exit={{ opacity: 0, scale: 1.15 }}
+                  />
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{ border: `2px solid ${teamColor}40` }}
+                    initial={{ scale: 1, opacity: 0.4 }}
+                    animate={{
+                      scale: [1, 1.25, 1],
+                      opacity: [0.4, 0, 0.4],
+                    }}
+                    transition={{
+                      duration: 1.0,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                      delay: 0.3,
+                    }}
+                    exit={{ opacity: 0, scale: 1.25 }}
+                  />
+                </>
               )}
             </AnimatePresence>
           </motion.div>
