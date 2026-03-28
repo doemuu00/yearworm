@@ -41,27 +41,28 @@ export async function GET(request: NextRequest) {
   }
 
   // Store Spotify tokens in cookies so API routes can use them
-  const response = NextResponse.redirect(new URL(next, requestUrl.origin));
-
+  // Use cookieStore.set() directly — response.cookies.set() doesn't persist on redirects
   if (data.session?.provider_token) {
-    response.cookies.set("spotify_access_token", data.session.provider_token, {
+    cookieStore.set("spotify_access_token", data.session.provider_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 3600, // 1 hour
+      maxAge: 3600,
       path: "/",
     });
   }
 
   if (data.session?.provider_refresh_token) {
-    response.cookies.set("spotify_refresh_token", data.session.provider_refresh_token, {
+    cookieStore.set("spotify_refresh_token", data.session.provider_refresh_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 30, // 30 days
+      maxAge: 60 * 60 * 24 * 30,
       path: "/",
     });
   }
 
-  return response;
+  // Redirect to lobby after login
+  const redirectTo = next === "/" ? "/lobby/local" : next;
+  return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
 }

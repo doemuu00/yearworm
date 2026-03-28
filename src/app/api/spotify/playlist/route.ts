@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    console.log("Fetching playlist with token type:", accessToken === cookieStore.get("spotify_access_token")?.value ? "cookie" : accessToken === session?.provider_token ? "session" : "client-credentials");
     const tracks = await getPlaylistTracks(playlistId, accessToken);
     const totalTracks = tracks.length;
 

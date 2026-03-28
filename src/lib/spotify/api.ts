@@ -59,7 +59,7 @@ export async function getPlaylistTracks(
 ): Promise<SpotifyTrack[]> {
   const allTracks: SpotifyTrack[] = [];
   let nextUrl: string | null =
-    `${SPOTIFY_API_BASE}/playlists/${playlistId}/tracks`;
+    `${SPOTIFY_API_BASE}/playlists/${playlistId}/tracks?limit=50`;
 
   while (nextUrl) {
     const page: SpotifyPlaylistTracksResponse = await fetchSpotify<SpotifyPlaylistTracksResponse>(

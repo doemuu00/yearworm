@@ -69,11 +69,44 @@ export function useSpotify() {
     }
   }, []);
 
+  const searchTracks = useCallback(async (query: string): Promise<PlaylistSongsResult> => {
+    if (!query.trim()) return { songs: [], totalTracks: 0, filteredCount: 0, hasEnoughSongs: false };
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch(
+        `/api/spotify/tracks?q=${encodeURIComponent(query.trim())}`,
+      );
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Track search failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      return {
+        songs: data.songs ?? [],
+        totalTracks: data.totalSongs ?? 0,
+        filteredCount: data.songsWithPreviews ?? 0,
+        hasEnoughSongs: data.hasEnoughSongs ?? false,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to search tracks';
+      setError(message);
+      return { songs: [], totalTracks: 0, filteredCount: 0, hasEnoughSongs: false };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => setError(null), []);
 
   return {
     searchPlaylists,
     getPlaylistSongs,
+    searchTracks,
     loading,
     error,
     clearError,
