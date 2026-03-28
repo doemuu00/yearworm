@@ -84,25 +84,24 @@ export function placeSong(state: GameState, position: number): GameState {
 /**
  * Challenge the last placement by the opposing team.
  *
- * If the placement was wrong (challenge succeeds):
- *   - The incorrectly placed card is removed from the placing team's timeline
- *   - The challenger's team gets the card added to their timeline at the correct position
- *   - The challenger earns 1 token
+ * The challenger physically places the card where they think it belongs on the
+ * placer's timeline. Three outcomes:
+ *   a) Original was correct -> card stays, challenger just lost a token.
+ *   b) Original wrong, challenger correct -> card stolen to challenger's timeline.
+ *   c) Original wrong, challenger also wrong -> card removed, challenger lost a token.
  *
- * If the placement was correct (challenge fails):
- *   - The placing team gets a bonus token
+ * Returns { state, challengerCorrect } so the UI can distinguish (b) from (c).
  */
 export function challengePlacement(
   state: GameState,
   lastPlacedSong: PlacedSong,
-  lastPlacedTeam: Team
-): GameState {
+  lastPlacedTeam: Team,
+  challengerPosition: number
+): { state: GameState; challengerCorrect: boolean } {
   const challengingTeam: Team = lastPlacedTeam === "A" ? "B" : "A";
 
   const challengerTokensKey =
     challengingTeam === "A" ? "teamATokens" : "teamBTokens";
-  const placerTokensKey =
-    lastPlacedTeam === "A" ? "teamATokens" : "teamBTokens";
   const placerTimelineKey =
     lastPlacedTeam === "A" ? "teamATimeline" : "teamBTimeline";
   const challengerTimelineKey =
@@ -115,52 +114,74 @@ export function challengePlacement(
   // Spend the challenge token
   let challengerTokens = applyTokenChange(state[challengerTokensKey], -1);
 
-  if (!lastPlacedSong.placedCorrectly) {
-    // Challenge succeeds: remove card from placer, give to challenger
-    const placerTimeline = state[placerTimelineKey]
-      .filter(
-        (s) => s.spotifyId !== lastPlacedSong.spotifyId
-      )
-      .map((s, i) => ({ ...s, placedAtIndex: i }));
+  const originalCorrect = lastPlacedSong.placedCorrectly;
 
-    const placerScore = state[placerScoreKey] - 1;
+  // Remove the song from the placer's timeline to evaluate challenger's position
+  const cleanedPlacerTimeline = state[placerTimelineKey]
+    .filter((s) => s.spotifyId !== lastPlacedSong.spotifyId)
+    .map((s, i) => ({ ...s, placedAtIndex: i }));
 
-    // Add the song to the challenger's timeline at the end (as a correct placement bonus)
+  const challengerCorrect = validatePlacement(
+    cleanedPlacerTimeline,
+    lastPlacedSong,
+    challengerPosition
+  );
+
+  if (originalCorrect) {
+    // (a) Original was correct — card stays, challenger just lost a token
+    return {
+      state: {
+        ...state,
+        [challengerTokensKey]: challengerTokens,
+      },
+      challengerCorrect,
+    };
+  }
+
+  if (challengerCorrect) {
+    // (b) Original wrong, challenger correct — steal card to challenger's timeline
+    const placerTimeline = cleanedPlacerTimeline;
+    const placerScore = Math.max(0, state[placerScoreKey] - 1);
+
     const challengerTimeline = state[challengerTimelineKey];
+    const correctPos = findCorrectPosition(challengerTimeline, lastPlacedSong);
     const stolenSong: PlacedSong = {
       ...lastPlacedSong,
-      placedAtIndex: challengerTimeline.length,
+      placedAtIndex: correctPos,
       placedCorrectly: true,
     };
-
-    // Find correct position for the stolen card
-    const correctPos = findCorrectPosition(challengerTimeline, lastPlacedSong);
     const newChallengerTimeline = [
       ...challengerTimeline.slice(0, correctPos),
-      { ...stolenSong, placedAtIndex: correctPos },
+      stolenSong,
       ...challengerTimeline.slice(correctPos),
     ].map((s, i) => ({ ...s, placedAtIndex: i }));
 
+    // Net 0 tokens spent (+1 back)
     challengerTokens = applyTokenChange(challengerTokens, 1);
 
     return {
-      ...state,
-      [placerTimelineKey]: placerTimeline,
-      [placerScoreKey]: Math.max(0, placerScore),
-      [challengerTimelineKey]: newChallengerTimeline,
-      [challengerScoreKey]: state[challengerScoreKey] + 1,
-      [challengerTokensKey]: challengerTokens,
-    };
-  } else {
-    // Challenge fails: placing team gets a bonus token
-    const placerTokens = applyTokenChange(state[placerTokensKey], 1);
-
-    return {
-      ...state,
-      [challengerTokensKey]: challengerTokens,
-      [placerTokensKey]: placerTokens,
+      state: {
+        ...state,
+        [placerTimelineKey]: placerTimeline,
+        [placerScoreKey]: placerScore,
+        [challengerTimelineKey]: newChallengerTimeline,
+        [challengerScoreKey]: state[challengerScoreKey] + 1,
+        [challengerTokensKey]: challengerTokens,
+      },
+      challengerCorrect,
     };
   }
+
+  // (c) Original wrong, challenger also wrong — remove card, challenger lost a token
+  return {
+    state: {
+      ...state,
+      [placerTimelineKey]: cleanedPlacerTimeline,
+      [placerScoreKey]: Math.max(0, state[placerScoreKey] - 1),
+      [challengerTokensKey]: challengerTokens,
+    },
+    challengerCorrect,
+  };
 }
 
 /**

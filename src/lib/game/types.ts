@@ -35,8 +35,6 @@ export interface GameSettings {
   clipDurationSeconds: number;
   /** Time limit for each turn in seconds (0 = no limit) */
   turnTimeLimitSeconds: number;
-  /** Challenge window duration in seconds (0 = no limit, manual dismiss only) */
-  challengeWindowSeconds: number;
   /** Tokens awarded for a correct placement */
   tokensPerCorrectGuess: number;
   /** Tokens required to challenge the other team's placement */
@@ -70,7 +68,6 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   cardsToWin: 5,
   clipDurationSeconds: 30,
   turnTimeLimitSeconds: 0,
-  challengeWindowSeconds: 0,
   tokensPerCorrectGuess: 1,
   tokensToChallenge: 1,
   tokensToSkip: 1,

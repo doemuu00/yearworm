@@ -11,6 +11,7 @@ interface PlacementResultProps {
   placingTeam: Team | null;
   wasChallenged: boolean;
   challengeSucceeded?: boolean; // true = challenger was right (placement was wrong)
+  challengerCorrect?: boolean; // whether the challenger's placement was correct
   onDismiss: () => void;
 }
 
@@ -113,6 +114,7 @@ export default function PlacementResult({
   placingTeam,
   wasChallenged,
   challengeSucceeded,
+  challengerCorrect,
   onDismiss,
 }: PlacementResultProps) {
   // Lock scroll
@@ -147,17 +149,23 @@ export default function PlacementResult({
       ? `${teamLabel(placingTeam)} placed it right`
       : 'The song was removed from the timeline';
   } else if (challengeSucceeded) {
-    // Scenario 3: challenger was right, placement was wrong
+    // Scenario 3: original wrong, challenger correct — card stolen
     showCheck = false;
     accentColor = teamColor(challengingTeam);
     headlineText = 'Challenge successful!';
-    subtitleText = `Card stolen by ${teamLabel(challengingTeam)}! +1 token`;
+    subtitleText = `Card stolen by ${teamLabel(challengingTeam)}!`;
+  } else if (challengerCorrect === false) {
+    // Scenario 4: original wrong, challenger also wrong — both wrong
+    showCheck = false;
+    accentColor = '#ef4444';
+    headlineText = 'Both wrong!';
+    subtitleText = 'Card removed.';
   } else {
-    // Scenario 4: challenger was wrong, placement was correct
+    // Scenario 5: original was correct — challenge failed
     showCheck = true;
     accentColor = teamColor(placingTeam);
     headlineText = 'Challenge failed!';
-    subtitleText = `${teamLabel(placingTeam)} earns a bonus token!`;
+    subtitleText = 'Placement was correct.';
   }
 
   return (

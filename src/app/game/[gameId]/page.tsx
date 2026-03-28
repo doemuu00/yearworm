@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { useGame } from '@/hooks/useGame';
+import { useGameStore } from '@/stores/gameStore';
 import { useTimer } from '@/hooks/useTimer';
 import { useAudio } from '@/hooks/useAudio';
 
@@ -16,12 +17,10 @@ import ChallengeModal from '@/components/game/ChallengeModal';
 import PlacementResult from '@/components/game/PlacementResult';
 import WinScreen from '@/components/game/WinScreen';
 import PassAndPlayInterstitial from '@/components/game/PassAndPlayInterstitial';
-import Button from '@/components/ui/Button';
-
 import type { Team, PlacedSong } from '@/lib/game/types';
 
 /* ── Phase type for local UI state ─────────────────────── */
-type Phase = 'playing' | 'challenge-window' | 'showing-result' | 'pass-device' | 'game-over';
+type Phase = 'playing' | 'challenge-window' | 'challenge-placing' | 'showing-result' | 'pass-device' | 'game-over';
 
 /* ── Team color helper ─────────────────────────────────── */
 const getTeamColor = (team: Team) =>
@@ -55,7 +54,8 @@ export default function GamePage() {
     challengePlacement,
     skipSong,
     nextTurn,
-    endChallengeWindow,
+    dismissChallenge,
+    lastChallengerCorrect,
   } = useGame();
 
   /* ── Local UI state ───────────────────────────────────── */
@@ -70,31 +70,13 @@ export default function GamePage() {
     placingTeam: Team;
     wasChallenged: boolean;
     challengeSucceeded?: boolean;
+    challengerCorrect?: boolean;
   } | null>(null);
 
   /* ── Audio ────────────────────────────────────────────── */
   const audio = useAudio();
 
-  /* ── Challenge window timer ───────────────────────────── */
-  const handleChallengeTimeout = useCallback(() => {
-    endChallengeWindow();
-    setRevealed(true);
-    // Show placement result overlay instead of brief delay
-    if (lastPlacedSong && lastPlacedTeam) {
-      setPlacementResult({
-        song: lastPlacedSong,
-        placingTeam: lastPlacedTeam,
-        wasChallenged: false,
-      });
-      setPhase('showing-result');
-      audio.stop();
-    } else {
-      setPhase('pass-device');
-      audio.stop();
-    }
-  }, [endChallengeWindow, audio, lastPlacedSong, lastPlacedTeam]);
-
-  const challengeTimer = useTimer({ onTimeout: handleChallengeTimeout });
+  /* ── (challenge timer removed — challenges are now manual) ── */
 
   /* ── Turn timer ───────────────────────────────────────── */
   const handleTurnTimeout = useCallback(() => {
@@ -119,10 +101,9 @@ export default function GamePage() {
     if (winner) {
       setPhase('game-over');
       turnTimer.stopTimer();
-      challengeTimer.stopTimer();
       audio.stop();
     }
-  }, [winner, turnTimer, challengeTimer, audio]);
+  }, [winner, turnTimer, audio]);
 
   /* ── Start turn timer when phase is 'playing' ─────────── */
   useEffect(() => {
@@ -162,40 +143,46 @@ export default function GamePage() {
 
       // Enter challenge window
       setPhase('challenge-window');
-      const cwSeconds = settings.challengeWindowSeconds ?? 0;
-      if (cwSeconds > 0) {
-        challengeTimer.startTimer(cwSeconds);
-      }
     },
-    [phase, placeSong, turnTimer, challengeTimer, audio, settings.challengeWindowSeconds]
+    [phase, placeSong, turnTimer, audio]
   );
 
   const handleChallenge = useCallback(() => {
-    challengeTimer.stopTimer();
-    // Capture placement correctness before challengePlacement mutates state
-    const wasPlacedCorrectly = lastPlacedSong?.placedCorrectly ?? false;
-    challengePlacement();
-    setRevealed(true);
+    // Transition to challenge-placing phase where challenger places the card
+    setPhase('challenge-placing');
+  }, []);
 
-    // Show placement result overlay
-    if (lastPlacedSong && lastPlacedTeam) {
+  const handleChallengerPlace = useCallback(
+    (position: number) => {
+      if (!lastPlacedSong || !lastPlacedTeam) return;
+
+      // Capture placement correctness before challengePlacement mutates state
+      const wasPlacedCorrectly = lastPlacedSong.placedCorrectly;
+      challengePlacement(position);
+
+      // Determine outcomes after the store updates
+      const originalWrong = !wasPlacedCorrectly;
+      // We need to read challengerCorrect from the store after the call
+      // Since challengePlacement is synchronous in Zustand, we can read it
+      const challengerCorrect = useGameStore.getState().lastChallengerCorrect ?? false;
+      const challengeSucceeded = originalWrong && challengerCorrect;
+
+      setRevealed(true);
       setPlacementResult({
         song: lastPlacedSong,
         placingTeam: lastPlacedTeam,
         wasChallenged: true,
-        challengeSucceeded: !wasPlacedCorrectly, // challenger succeeds when placement was wrong
+        challengeSucceeded,
+        challengerCorrect,
       });
       setPhase('showing-result');
       audio.stop();
-    } else {
-      setPhase('pass-device');
-      audio.stop();
-    }
-  }, [challengePlacement, challengeTimer, audio, lastPlacedSong, lastPlacedTeam]);
+    },
+    [challengePlacement, audio, lastPlacedSong, lastPlacedTeam]
+  );
 
   const handleDismissChallenge = useCallback(() => {
-    challengeTimer.stopTimer();
-    endChallengeWindow();
+    dismissChallenge();
     setRevealed(true);
 
     // Show placement result overlay
@@ -211,7 +198,7 @@ export default function GamePage() {
       setPhase('pass-device');
       audio.stop();
     }
-  }, [endChallengeWindow, challengeTimer, audio, lastPlacedSong, lastPlacedTeam]);
+  }, [dismissChallenge, audio, lastPlacedSong, lastPlacedTeam]);
 
   const handleSkip = useCallback(() => {
     if (currentTeamTokens < (settings.tokensToSkip ?? 1)) return;
@@ -311,6 +298,48 @@ export default function GamePage() {
       </div>
 
 
+      {/* ── Challenge-placing phase: challenger places card on placer's timeline ── */}
+      <AnimatePresence>
+        {phase === 'challenge-placing' && lastPlacedSong && lastPlacedTeam && (
+          <motion.div
+            className="fixed inset-0 z-50 flex flex-col"
+            style={{ background: '#0a0e1a' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <div className="sticky top-0 z-30 px-4 pt-4 pb-2">
+              <div className="glass-card rounded-xl p-4 text-center">
+                <h3 className="text-lg font-bold text-white">
+                  Team {challengingTeam}: Place the card where you think it belongs
+                </h3>
+                <p className="text-sm text-white/50 mt-1">
+                  Drag the card onto Team {lastPlacedTeam}&apos;s timeline
+                </p>
+              </div>
+            </div>
+            <div className="flex-1 px-4 pb-24 overflow-auto">
+              <GameBoard
+                activeTimeline={
+                  // Show placer's timeline WITHOUT the challenged song
+                  (lastPlacedTeam === 'A' ? teamATimeline : teamBTimeline)
+                    .filter((s) => s.spotifyId !== lastPlacedSong.spotifyId)
+                    .map((s, i) => ({ ...s, placedAtIndex: i }))
+                }
+                opponentTimeline={
+                  challengingTeam === 'A' ? teamBTimeline : teamATimeline
+                }
+                currentSong={lastPlacedSong}
+                activeTeam={challengingTeam}
+                onPlaceSong={handleChallengerPlace}
+                songReady={true}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ── Modal: Challenge window ─────────────────────── */}
       <ChallengeModal
         isOpen={phase === 'challenge-window'}
@@ -320,7 +349,6 @@ export default function GamePage() {
         canChallenge={canChallenge}
         onChallenge={handleChallenge}
         onDismiss={handleDismissChallenge}
-        timeRemaining={challengeTimer.timeRemaining}
       />
 
       {/* ── Modal: Placement result overlay ───────────── */}
@@ -330,6 +358,7 @@ export default function GamePage() {
         placingTeam={placementResult?.placingTeam ?? null}
         wasChallenged={placementResult?.wasChallenged ?? false}
         challengeSucceeded={placementResult?.challengeSucceeded}
+        challengerCorrect={placementResult?.challengerCorrect}
         onDismiss={handleResultDismiss}
       />
 

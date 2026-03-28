@@ -51,16 +51,6 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
         onChange={(v) => update({ turnTimeLimitSeconds: v })}
       />
 
-      <SliderSetting
-        label="Challenge Window"
-        description="Time to challenge a placement (0 = no limit)"
-        value={settings.challengeWindowSeconds ?? 0}
-        min={0}
-        max={30}
-        step={5}
-        formatValue={(v) => (v === 0 ? 'No Limit' : `${v}s`)}
-        onChange={(v) => update({ challengeWindowSeconds: v })}
-      />
     </div>
   );
 }

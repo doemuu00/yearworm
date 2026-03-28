@@ -74,6 +74,7 @@ export function useGame() {
     isChallengeable: store.isChallengeable,
     lastPlacedSong: store.lastPlacedSong,
     lastPlacedTeam: store.lastPlacedTeam,
+    lastChallengerCorrect: store.lastChallengerCorrect,
     gameLog: store.gameLog,
     settings: store.settings,
 
@@ -84,6 +85,6 @@ export function useGame() {
     skipSong: store.skipSong,
     nextTurn: store.nextTurn,
     setGameState: store.setGameState,
-    endChallengeWindow: store.endChallengeWindow,
+    dismissChallenge: store.dismissChallenge,
   };
 }

@@ -25,14 +25,17 @@ interface GameStoreState extends GameState {
   gameLog: GameAction[];
   settings: GameSettings;
 
+  // Challenge result (for UI to read after challengePlacement)
+  lastChallengerCorrect: boolean | null;
+
   // Actions
   initGame: (songs: Song[], settings?: GameSettings) => void;
   placeSong: (position: number) => void;
-  challengePlacement: () => void;
+  challengePlacement: (position: number) => void;
   skipSong: () => void;
   nextTurn: () => void;
   setGameState: (state: Partial<GameState>) => void;
-  endChallengeWindow: () => void;
+  dismissChallenge: () => void;
 }
 
 function extractGameState(store: GameStoreState): GameState {
@@ -93,6 +96,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   isChallengeable: false,
   lastPlacedSong: null,
   lastPlacedTeam: null,
+  lastChallengerCorrect: null,
   gameLog: [],
   settings: DEFAULT_GAME_SETTINGS,
 
@@ -144,35 +148,43 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  challengePlacement: () => {
+  challengePlacement: (position: number) => {
     const store = get();
     if (!store.isChallengeable || !store.lastPlacedSong || !store.lastPlacedTeam) return;
 
     const currentState = extractGameState(store);
     const challengingTeam: Team = store.lastPlacedTeam === "A" ? "B" : "A";
-    const newState = engineChallengePlacement(
+    const { state: newState, challengerCorrect } = engineChallengePlacement(
       currentState,
       store.lastPlacedSong,
-      store.lastPlacedTeam
+      store.lastPlacedTeam,
+      position
     );
 
-    const success = !store.lastPlacedSong.placedCorrectly;
+    const originalCorrect = store.lastPlacedSong.placedCorrectly;
+    const success = !originalCorrect && challengerCorrect;
     const actionType = success ? "CHALLENGE_SUCCESS" : "CHALLENGE_FAIL";
+
+    let details: string;
+    if (originalCorrect) {
+      details = "Challenge failed. Placement was correct.";
+    } else if (challengerCorrect) {
+      details = "Challenge succeeded! Card stolen.";
+    } else {
+      details = "Both wrong! Card removed.";
+    }
 
     set({
       ...newState,
       isChallengeable: false,
-      lastPlacedSong: null,
-      lastPlacedTeam: null,
+      lastChallengerCorrect: challengerCorrect,
       gameLog: logAction(
         store.gameLog,
         actionType,
         challengingTeam,
         store.lastPlacedSong,
-        undefined,
-        success
-          ? `Challenge succeeded! Card stolen.`
-          : `Challenge failed. Bonus token awarded to opponent.`
+        position,
+        details
       ),
     });
   },
@@ -211,7 +223,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set(partial);
   },
 
-  endChallengeWindow: () => {
+  dismissChallenge: () => {
     const store = get();
     if (!store.isChallengeable || !store.lastPlacedSong || !store.lastPlacedTeam) {
       set({ isChallengeable: false });
@@ -229,8 +241,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({
       ...resolved,
       isChallengeable: false,
-      lastPlacedSong: null,
-      lastPlacedTeam: null,
+      lastChallengerCorrect: null,
     });
   },
 }));
