@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { getPlaylistTracks } from "@/lib/spotify/api";
+import { getClientCredentialsToken } from "@/lib/spotify/client-credentials";
 import { Song } from "@/lib/game/types";
 
 export async function GET(request: NextRequest) {
@@ -37,25 +38,25 @@ export async function GET(request: NextRequest) {
     error: sessionError,
   } = await supabase.auth.getSession();
 
-  if (sessionError || !session) {
-    return NextResponse.json(
-      { error: "Not authenticated" },
-      { status: 401 }
-    );
-  }
+  // Session is optional — we can fall back to client credentials
 
-  // Try cookie first (set during OAuth callback), then fall back to session
-  const accessToken = cookieStore.get("spotify_access_token")?.value
-    ?? session.provider_token;
+  // Try cookie first, then session, then client credentials as fallback
+  let accessToken = cookieStore.get("spotify_access_token")?.value
+    ?? session?.provider_token;
 
   if (!accessToken) {
-    return NextResponse.json(
-      { error: "No Spotify access token available. Try logging in again." },
-      { status: 401 }
-    );
+    try {
+      accessToken = await getClientCredentialsToken();
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to get Spotify access token" },
+        { status: 500 }
+      );
+    }
   }
 
   try {
+    console.log("Fetching playlist with token type:", accessToken === cookieStore.get("spotify_access_token")?.value ? "cookie" : accessToken === session?.provider_token ? "session" : "client-credentials");
     const tracks = await getPlaylistTracks(playlistId, accessToken);
     const totalTracks = tracks.length;
 
@@ -77,9 +78,19 @@ export async function GET(request: NextRequest) {
       hasEnoughSongs: songs.length >= 10,
     });
   } catch (error) {
-    console.error("Failed to fetch playlist tracks:", error);
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error("Failed to fetch playlist tracks:", msg);
+
+    // If it's a 403, the token doesn't have playlist access (likely client credentials)
+    if (msg.includes('403')) {
+      return NextResponse.json(
+        { error: "Spotify login required to fetch playlist tracks. Please log in with Spotify first." },
+        { status: 403 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Failed to fetch playlist tracks" },
+      { error: "Failed to fetch playlist tracks: " + msg },
       { status: 500 }
     );
   }

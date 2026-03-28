@@ -41,7 +41,6 @@ export async function searchPlaylists(
   const params = new URLSearchParams({
     q: query,
     type: "playlist",
-    limit: String(Math.min(limit, 50)),
   });
 
   return fetchSpotify<SpotifySearchResult>(
@@ -60,7 +59,7 @@ export async function getPlaylistTracks(
 ): Promise<SpotifyTrack[]> {
   const allTracks: SpotifyTrack[] = [];
   let nextUrl: string | null =
-    `${SPOTIFY_API_BASE}/playlists/${playlistId}/tracks?limit=50`;
+    `${SPOTIFY_API_BASE}/playlists/${playlistId}/tracks`;
 
   while (nextUrl) {
     const page: SpotifyPlaylistTracksResponse = await fetchSpotify<SpotifyPlaylistTracksResponse>(

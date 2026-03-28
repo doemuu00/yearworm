@@ -32,7 +32,9 @@ export function useSpotify() {
       }
 
       const data = await res.json();
-      return data.playlists ?? [];
+      const items: SpotifyPlaylist[] = data.playlists?.items ?? [];
+      // Spotify sometimes returns null items — filter them out
+      return items.filter(Boolean);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to search playlists';
       setError(message);

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { getClientCredentialsToken } from "@/lib/spotify/client-credentials";
 
 async function getAccessToken(supabase: ReturnType<typeof createServerClient>): Promise<string | null> {
   const {
@@ -60,7 +61,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
 async function searchSpotify(query: string, accessToken: string) {
   const response = await fetch(
-    `https://api.spotify.com/v1/search?type=playlist&q=${encodeURIComponent(query)}&limit=20`,
+    `https://api.spotify.com/v1/search?type=playlist&q=${encodeURIComponent(query)}`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -99,15 +100,19 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  // Try cookie first (set during OAuth callback), then fall back to session
+  // Try cookie first, then session, then client credentials as fallback
   let accessToken = cookieStore.get("spotify_access_token")?.value
     ?? await getAccessToken(supabase);
 
   if (!accessToken) {
-    return NextResponse.json(
-      { error: "Not authenticated — no Spotify token. Try logging in again." },
-      { status: 401 }
-    );
+    try {
+      accessToken = await getClientCredentialsToken();
+    } catch {
+      return NextResponse.json(
+        { error: "Failed to get Spotify access token" },
+        { status: 500 }
+      );
+    }
   }
 
   let response = await searchSpotify(query, accessToken);
@@ -126,10 +131,10 @@ export async function GET(request: NextRequest) {
   }
 
   if (!response.ok) {
-    const errorData = await response.json();
-    console.error("Spotify search error:", errorData);
+    const errorText = await response.text();
+    console.error("Spotify search error:", response.status, errorText);
     return NextResponse.json(
-      { error: "Spotify search failed" },
+      { error: "Spotify search failed", status: response.status, details: errorText },
       { status: response.status }
     );
   }

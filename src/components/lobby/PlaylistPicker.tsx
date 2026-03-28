@@ -336,7 +336,7 @@ function PlaylistCard({
           {playlist.name}
         </h4>
         <p className="text-xs text-white/40 mt-0.5">
-          {playlist.tracks.total} tracks
+          {playlist.tracks?.total ?? playlist.items?.total ?? 0} tracks
         </p>
       </div>
       <ChevronRightIcon className="w-4 h-4 text-white/20 group-hover:text-white/50 flex-shrink-0 transition-colors" />
