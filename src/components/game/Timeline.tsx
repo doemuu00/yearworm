@@ -243,34 +243,43 @@ export default function Timeline({
     ? ''
     : 'opacity-40 grayscale pointer-events-none';
 
-  // Build drop zones between cards (and at edges)
+  // Card width as percentage of the container (approximate)
+  const containerMinW = compact ? 600 : 900;
+  const cardW = compact ? 48 : 68;
+  const cardHalfPct = (cardW / containerMinW) * 100 / 2 + 1; // half card width + gap
+
+  // Build drop zones between cards (and at edges), avoiding card positions
   const dropZones: { id: string; leftPct: number; widthPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
     // Zone before first card
     const firstPct = yearToPercent(sorted[0].releaseYear);
-    if (firstPct > 1) {
-      dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: firstPct });
+    const beforeEnd = firstPct - cardHalfPct;
+    if (beforeEnd > 0) {
+      dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: beforeEnd });
     }
     // Zones between cards
     for (let i = 0; i < sorted.length - 1; i++) {
-      const leftPct = yearToPercent(sorted[i].releaseYear);
-      const rightPct = yearToPercent(sorted[i + 1].releaseYear);
-      const gap = rightPct - leftPct;
-      if (gap > 1) {
+      const leftCardPct = yearToPercent(sorted[i].releaseYear);
+      const rightCardPct = yearToPercent(sorted[i + 1].releaseYear);
+      const zoneLeft = leftCardPct + cardHalfPct;
+      const zoneRight = rightCardPct - cardHalfPct;
+      const zoneWidth = zoneRight - zoneLeft;
+      if (zoneWidth > 1) {
         dropZones.push({
           id: `drop-${i + 1}`,
-          leftPct: leftPct + 1,
-          widthPct: gap - 2,
+          leftPct: zoneLeft,
+          widthPct: zoneWidth,
         });
       }
     }
     // Zone after last card
     const lastPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
-    if (lastPct < 99) {
+    const afterStart = lastPct + cardHalfPct;
+    if (afterStart < 100) {
       dropZones.push({
         id: `drop-${sorted.length}`,
-        leftPct: lastPct + 1,
-        widthPct: 99 - lastPct,
+        leftPct: afterStart,
+        widthPct: 100 - afterStart,
       });
     }
   } else if (showDropZones && sorted.length === 0) {
