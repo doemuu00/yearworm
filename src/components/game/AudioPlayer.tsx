@@ -97,14 +97,10 @@ export default function AudioPlayer({
   const handleTap = useCallback(() => {
     if (state === 'ready') return;
 
-    // Demo mode: no preview URL
+    // Demo mode: no preview URL — skip straight to ready
     if (!previewUrl) {
       if (state === 'idle') {
-        setNoPreviewFlash(true);
-        setTimeout(() => {
-          setNoPreviewFlash(false);
-          transitionToReady();
-        }, 800);
+        transitionToReady();
       }
       return;
     }
@@ -285,7 +281,7 @@ export default function AudioPlayer({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                   >
-                    Tap to listen
+                    {previewUrl ? 'Tap to listen' : 'Tap to reveal'}
                   </motion.span>
                 )}
               </AnimatePresence>

@@ -249,7 +249,7 @@ export default function GameBoard({
           <Timeline
             timeline={activeTimeline}
             team={activeTeam}
-            isActiveTeam={!!showDraggableCard}
+            isActiveTeam={true}
             onPlaceSong={onPlaceSong}
             isDragActive={isDragActive}
           />
