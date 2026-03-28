@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Team, PlacedSong } from '@/lib/game/types';
 import { DESIGN_TOKENS } from '@/lib/game/types';
@@ -97,12 +97,13 @@ function AnimatedX({ color }: { color: string }) {
 }
 
 /* ── Stagger wrapper for text lines ───────────────────── */
+const staggerDelays = [0.8, 1.5, 1.8, 2.0];
 const staggerChild = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: 0.55 + i * 0.12, duration: 0.35, ease: 'easeOut' as const },
+    transition: { delay: staggerDelays[i] ?? 0.8 + i * 0.3, duration: 0.4, ease: 'easeOut' as const },
   }),
 };
 
@@ -114,18 +115,6 @@ export default function PlacementResult({
   challengeSucceeded,
   onDismiss,
 }: PlacementResultProps) {
-  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Auto-dismiss
-  useEffect(() => {
-    if (!isOpen) return;
-    const delay = wasChallenged ? 3000 : 2500;
-    dismissTimerRef.current = setTimeout(onDismiss, delay);
-    return () => {
-      if (dismissTimerRef.current) clearTimeout(dismissTimerRef.current);
-    };
-  }, [isOpen, wasChallenged, onDismiss]);
-
   // Lock scroll
   useEffect(() => {
     if (isOpen) {
@@ -180,7 +169,7 @@ export default function PlacementResult({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
-          onClick={onDismiss}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Backdrop */}
           <motion.div
@@ -245,7 +234,7 @@ export default function PlacementResult({
                     type: 'spring',
                     stiffness: 200,
                     damping: 15,
-                    delay: 0.7,
+                    delay: 1.2,
                   }}
                 >
                   <span
@@ -301,6 +290,19 @@ export default function PlacementResult({
               initial="hidden"
               animate="visible"
             />
+
+            {/* Continue button */}
+            <motion.button
+              className="mt-6 w-full rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 2.2, duration: 0.4, ease: 'easeOut' }}
+              onClick={onDismiss}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              Continue
+            </motion.button>
           </motion.div>
         </motion.div>
       )}

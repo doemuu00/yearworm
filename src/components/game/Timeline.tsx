@@ -243,17 +243,19 @@ export default function Timeline({
     ? ''
     : 'opacity-40 grayscale pointer-events-none';
 
-  // Card width as percentage of the container (approximate)
+  // Card exclusion zone as percentage of the container
+  // Cards are centered on their year position via translateX(-50%), so we need
+  // to exclude cardWidth/2 on each side, plus a small gap for visual breathing room
   const containerMinW = compact ? 600 : 900;
   const cardW = compact ? 48 : 68;
-  const cardHalfPct = (cardW / containerMinW) * 100 / 2 + 1; // half card width + gap
+  const cardExclusionPct = ((cardW + 16) / containerMinW) * 100 / 2; // half card + 8px gap on each side
 
   // Build drop zones between cards (and at edges), avoiding card positions
   const dropZones: { id: string; leftPct: number; widthPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
     // Zone before first card
     const firstPct = yearToPercent(sorted[0].releaseYear);
-    const beforeEnd = firstPct - cardHalfPct;
+    const beforeEnd = firstPct - cardExclusionPct;
     if (beforeEnd > 0) {
       dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: beforeEnd });
     }
@@ -261,8 +263,8 @@ export default function Timeline({
     for (let i = 0; i < sorted.length - 1; i++) {
       const leftCardPct = yearToPercent(sorted[i].releaseYear);
       const rightCardPct = yearToPercent(sorted[i + 1].releaseYear);
-      const zoneLeft = leftCardPct + cardHalfPct;
-      const zoneRight = rightCardPct - cardHalfPct;
+      const zoneLeft = leftCardPct + cardExclusionPct;
+      const zoneRight = rightCardPct - cardExclusionPct;
       const zoneWidth = zoneRight - zoneLeft;
       if (zoneWidth > 1) {
         dropZones.push({
@@ -274,7 +276,7 @@ export default function Timeline({
     }
     // Zone after last card
     const lastPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
-    const afterStart = lastPct + cardHalfPct;
+    const afterStart = lastPct + cardExclusionPct;
     if (afterStart < 100) {
       dropZones.push({
         id: `drop-${sorted.length}`,
