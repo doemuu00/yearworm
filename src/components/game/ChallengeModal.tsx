@@ -75,50 +75,52 @@ export default function ChallengeModal({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Countdown ring */}
-            <div className="mx-auto mb-4" style={{ width: 64, height: 64 }}>
-              <svg width="64" height="64" viewBox="0 0 64 64">
-                <circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.08)"
-                  strokeWidth="3"
-                />
-                <motion.circle
-                  cx="32"
-                  cy="32"
-                  r="28"
-                  fill="none"
-                  stroke={timeRemaining <= 3 ? '#ef4444' : challengeColor}
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeDasharray={2 * Math.PI * 28}
-                  strokeDashoffset={2 * Math.PI * 28 * (1 - progress)}
-                  transform="rotate(-90 32 32)"
-                  style={{
-                    filter: `drop-shadow(0 0 4px ${
-                      timeRemaining <= 3 ? 'rgba(239,68,68,0.5)' : `${challengeColor}66`
-                    })`,
-                  }}
-                />
-                <text
-                  x="32"
-                  y="37"
-                  textAnchor="middle"
-                  fill="white"
-                  fontSize="18"
-                  fontWeight="bold"
-                  fontFamily="system-ui"
-                >
-                  {Math.ceil(timeRemaining)}
-                </text>
-              </svg>
-            </div>
+            {/* Countdown ring (only if timed) */}
+            {timeRemaining > 0 && (
+              <div className="mx-auto mb-4" style={{ width: 64, height: 64 }}>
+                <svg width="64" height="64" viewBox="0 0 64 64">
+                  <circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    fill="none"
+                    stroke="rgba(255,255,255,0.08)"
+                    strokeWidth="3"
+                  />
+                  <motion.circle
+                    cx="32"
+                    cy="32"
+                    r="28"
+                    fill="none"
+                    stroke={timeRemaining <= 3 ? '#ef4444' : challengeColor}
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeDasharray={2 * Math.PI * 28}
+                    strokeDashoffset={2 * Math.PI * 28 * (1 - progress)}
+                    transform="rotate(-90 32 32)"
+                    style={{
+                      filter: `drop-shadow(0 0 4px ${
+                        timeRemaining <= 3 ? 'rgba(239,68,68,0.5)' : `${challengeColor}66`
+                      })`,
+                    }}
+                  />
+                  <text
+                    x="32"
+                    y="37"
+                    textAnchor="middle"
+                    fill="white"
+                    fontSize="18"
+                    fontWeight="bold"
+                    fontFamily="system-ui"
+                  >
+                    {Math.ceil(timeRemaining)}
+                  </text>
+                </svg>
+              </div>
+            )}
 
             <h3 className="mb-1 text-lg font-bold text-white">
-              Challenge Window
+              Challenge?
             </h3>
             <p className="mb-4 text-sm text-white/50">
               {placingTeam
@@ -141,7 +143,7 @@ export default function ChallengeModal({
                 whileTap={canChallenge ? { scale: 0.97 } : undefined}
                 disabled={!canChallenge}
               >
-                {canChallenge ? 'Challenge!' : 'Not enough tokens'}
+                {canChallenge ? 'Challenge! (1 token)' : 'Not enough tokens'}
               </motion.button>
               <motion.button
                 className="flex-1 rounded-xl border-1.5 border-white/10 px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/80"
@@ -153,12 +155,6 @@ export default function ChallengeModal({
                 Let it stand
               </motion.button>
             </div>
-
-            {canChallenge && (
-              <p className="mt-2 text-[10px] text-white/30">
-                Costs 1 token to challenge
-              </p>
-            )}
           </motion.div>
         </motion.div>
       )}
