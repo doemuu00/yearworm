@@ -77,19 +77,18 @@ export default function PassAndPlayInterstitial({
         </motion.div>
 
         {/* Message */}
-        <div>
-          <motion.h1
-            className="text-4xl font-black tracking-tight"
-            style={{
-              color,
-              textShadow: `0 0 24px ${color}66, 0 0 48px ${color}33`,
-            }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.35 }}
-          >
-            {label}&apos;s Turn
-          </motion.h1>
+        <motion.h1
+          className="text-4xl font-black tracking-tight"
+          style={{
+            color,
+            textShadow: `0 0 24px ${color}66, 0 0 48px ${color}33`,
+          }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.35 }}
+        >
+          {label}&apos;s Turn
+        </motion.h1>
 
         {/* Ready button */}
         <motion.div
