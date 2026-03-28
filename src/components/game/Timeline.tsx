@@ -12,6 +12,7 @@ export interface TimelineProps {
   isActiveTeam: boolean;
   onPlaceSong: (position: number) => void;
   isDragActive: boolean;
+  compact?: boolean;
 }
 
 /* ── Team colour helpers ────────────────────────────────── */
@@ -78,7 +79,7 @@ interface PlacedCardProps {
   index: number;
 }
 
-function PlacedCard({ song, team, index }: PlacedCardProps) {
+function PlacedCard({ song, team, index, compact = false }: PlacedCardProps & { compact?: boolean }) {
   const color = teamColor(team);
   const rgb = teamColorRgb(team);
 
@@ -92,7 +93,7 @@ function PlacedCard({ song, team, index }: PlacedCardProps) {
     >
       {/* Card */}
       <div
-        className="relative w-[100px] h-[100px] rounded-xl overflow-hidden"
+        className={`relative ${compact ? 'w-[70px] h-[70px]' : 'w-[100px] h-[100px]'} rounded-xl overflow-hidden`}
         style={{
           border: `2px solid ${color}`,
           boxShadow: `0 0 12px rgba(${rgb}, 0.2)`,
@@ -153,13 +154,14 @@ export default function Timeline({
   team,
   isActiveTeam,
   isDragActive,
+  compact = false,
 }: TimelineProps) {
   const sorted = [...timeline].sort((a, b) => a.placedAtIndex - b.placedAtIndex);
 
   /* Empty state */
   if (sorted.length === 0 && !isDragActive) {
     return (
-      <div className="glass-card flex items-center justify-center min-h-[140px] px-6">
+      <div className={`glass-card flex items-center justify-center ${compact ? 'min-h-[100px]' : 'min-h-[140px]'} px-6`}>
         <p className="text-white/40 text-sm select-none">
           Drag a song here to start your timeline
         </p>
@@ -169,7 +171,7 @@ export default function Timeline({
 
   return (
     <div
-      className="glass-card overflow-x-auto min-h-[160px] px-4 py-4"
+      className={`glass-card overflow-x-auto ${compact ? 'min-h-[110px] px-3 py-2' : 'min-h-[160px] px-4 py-4'}`}
       style={{ scrollBehavior: 'smooth' }}
     >
       <div className="flex items-center gap-0 min-w-min">
@@ -178,7 +180,7 @@ export default function Timeline({
 
         {sorted.map((song, i) => (
           <div key={song.spotifyId} className="flex items-center">
-            <PlacedCard song={song} team={team} index={i} />
+            <PlacedCard song={song} team={team} index={i} compact={compact} />
 
             {/* Trailing drop zone after each card */}
             <DropZone

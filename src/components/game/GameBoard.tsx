@@ -19,9 +19,10 @@ import type { Song, PlacedSong, Team } from '@/lib/game/types';
 /* ── Props ──────────────────────────────────────────────── */
 
 export interface GameBoardProps {
-  timeline: PlacedSong[];
+  activeTimeline: PlacedSong[];
+  opponentTimeline: PlacedSong[];
   currentSong: Song | null;
-  team: Team;
+  activeTeam: Team;
   onPlaceSong: (position: number) => void;
 }
 
@@ -41,7 +42,7 @@ interface DraggableSongCardProps {
 }
 
 function DraggableSongCard({ song, team }: DraggableSongCardProps) {
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
+  const { attributes, listeners, setNodeRef, isDragging } =
     useDraggable({ id: 'current-song' });
 
   const color = teamColor(team);
@@ -68,7 +69,6 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
       tabIndex={0}
       aria-roledescription="draggable"
     >
-      {/* Blurred album art (mystery style) */}
       {song.albumArtUrl ? (
         <img
           src={song.albumArtUrl}
@@ -81,18 +81,14 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
         <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
       )}
 
-      {/* Border glow */}
       <div
         className="absolute inset-0 rounded-xl"
         style={{
           border: `2px solid ${color}`,
-          boxShadow: isDragging
-            ? `0 0 24px rgba(${rgb}, 0.5), inset 0 0 24px rgba(${rgb}, 0.1)`
-            : `0 0 12px rgba(${rgb}, 0.2)`,
+          boxShadow: `0 0 12px rgba(${rgb}, 0.2)`,
         }}
       />
 
-      {/* Question mark / drag hint */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
         <span className="text-3xl font-bold text-white/80">?</span>
         <span className="text-[10px] text-white/50 font-medium">
@@ -146,12 +142,15 @@ function DragOverlayCard({ song, team }: { song: Song; team: Team }) {
 /* ── GameBoard ──────────────────────────────────────────── */
 
 export default function GameBoard({
-  timeline,
+  activeTimeline,
+  opponentTimeline,
   currentSong,
-  team,
+  activeTeam,
   onPlaceSong,
 }: GameBoardProps) {
   const [isDragActive, setIsDragActive] = useState(false);
+
+  const opponentTeam: Team = activeTeam === 'A' ? 'B' : 'A';
 
   /* Sensors with activation constraint to avoid accidental drags */
   const pointerSensor = useSensor(PointerSensor, {
@@ -174,7 +173,6 @@ export default function GameBoard({
       const { over } = event;
       if (!over) return;
 
-      // Drop zone IDs follow the pattern "drop-{index}"
       const match = String(over.id).match(/^drop-(\d+)$/);
       if (match) {
         const position = parseInt(match[1], 10);
@@ -195,43 +193,65 @@ export default function GameBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex flex-col gap-6 w-full">
-        {/* Timeline */}
-        <div>
+      <div className="flex flex-col gap-4 w-full">
+        {/* Opponent timeline (top, compact, read-only) */}
+        <div className="opacity-60">
           <h3
-            className="text-xs font-semibold uppercase tracking-wider mb-2"
-            style={{ color: teamColor(team), opacity: 0.7 }}
+            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+            style={{ color: teamColor(opponentTeam), opacity: 0.7 }}
           >
-            {team === 'A' ? 'Team A' : 'Team B'} Timeline
+            {opponentTeam === 'A' ? 'Team A' : 'Team B'} Timeline
+            <span className="ml-2 text-white/30">
+              ({opponentTimeline.length} {opponentTimeline.length === 1 ? 'card' : 'cards'})
+            </span>
           </h3>
 
           <Timeline
-            timeline={timeline}
-            team={team}
-            isActiveTeam={!!currentSong}
-            onPlaceSong={onPlaceSong}
-            isDragActive={isDragActive}
+            timeline={opponentTimeline}
+            team={opponentTeam}
+            isActiveTeam={false}
+            onPlaceSong={() => {}}
+            isDragActive={false}
+            compact
           />
         </div>
 
-        {/* Current song card (draggable) */}
+        {/* Draggable current song card */}
         {currentSong && (
           <div className="flex flex-col items-center gap-2">
             <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
               Current Song
             </p>
-            <DraggableSongCard song={currentSong} team={team} />
+            <DraggableSongCard song={currentSong} team={activeTeam} />
             <p className="text-xs text-white/30">
-              Drag onto the timeline to place
+              Drag onto the timeline below
             </p>
           </div>
         )}
+
+        {/* Active team timeline (bottom, large, with drop zones) */}
+        <div>
+          <h3
+            className="text-xs font-semibold uppercase tracking-wider mb-2"
+            style={{ color: teamColor(activeTeam), opacity: 0.7 }}
+          >
+            {activeTeam === 'A' ? 'Team A' : 'Team B'} Timeline
+          </h3>
+
+          <Timeline
+            timeline={activeTimeline}
+            team={activeTeam}
+            isActiveTeam={!!currentSong}
+            onPlaceSong={onPlaceSong}
+            isDragActive={isDragActive}
+          />
+        </div>
       </div>
 
       {/* Floating drag overlay that follows the cursor */}
       <DragOverlay dropAnimation={null}>
         {isDragActive && currentSong ? (
-          <DragOverlayCard song={currentSong} team={team} />
+          <DragOverlayCard song={currentSong} team={activeTeam} />
         ) : null}
       </DragOverlay>
     </DndContext>

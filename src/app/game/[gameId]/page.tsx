@@ -22,8 +22,7 @@ import type { Team } from '@/lib/game/types';
 /* ── Phase type for local UI state ─────────────────────── */
 type Phase = 'playing' | 'challenge-window' | 'pass-device' | 'game-over';
 
-/* ── Constants ─────────────────────────────────────────── */
-const CHALLENGE_WINDOW_SECONDS = 10;
+/* ── No hardcoded challenge window — uses settings ─────── */
 
 export default function GamePage() {
   const router = useRouter();
@@ -37,6 +36,8 @@ export default function GamePage() {
     currentSong,
     currentTeamTimeline,
     currentTeamTokens,
+    teamATimeline,
+    teamBTimeline,
     teamAScore,
     teamBScore,
     teamATokens,
@@ -135,7 +136,10 @@ export default function GamePage() {
 
       // Enter challenge window
       setPhase('challenge-window');
-      challengeTimer.startTimer(CHALLENGE_WINDOW_SECONDS);
+      const cwSeconds = settings.challengeWindowSeconds ?? 0;
+      if (cwSeconds > 0) {
+        challengeTimer.startTimer(cwSeconds);
+      }
     },
     [phase, placeSong, turnTimer, challengeTimer, audio]
   );
@@ -243,9 +247,10 @@ export default function GamePage() {
       {/* ── Bottom section: GameBoard ────────────────────── */}
       <div className="flex-1 px-4 pb-24">
         <GameBoard
-          timeline={currentTeamTimeline}
+          activeTimeline={currentTeamTimeline}
+          opponentTimeline={currentTeam === 'A' ? teamBTimeline : teamATimeline}
           currentSong={phase === 'playing' ? currentSong : null}
-          team={currentTeam}
+          activeTeam={currentTeam}
           onPlaceSong={handlePlaceSong}
         />
       </div>

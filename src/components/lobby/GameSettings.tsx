@@ -8,21 +8,6 @@ interface GameSettingsProps {
   onSettingsChange: (settings: GameSettings) => void;
 }
 
-const CLIP_DURATION_OPTIONS = [
-  { value: 10, label: '10 seconds' },
-  { value: 15, label: '15 seconds' },
-  { value: 20, label: '20 seconds' },
-  { value: 30, label: '30 seconds' },
-];
-
-const TURN_TIME_OPTIONS = [
-  { value: 30, label: '30 seconds' },
-  { value: 45, label: '45 seconds' },
-  { value: 60, label: '60 seconds' },
-  { value: 90, label: '90 seconds' },
-  { value: 0, label: 'No Limit' },
-];
-
 export default function GameSettingsPanel({ settings, onSettingsChange }: GameSettingsProps) {
   const update = useCallback(
     (patch: Partial<GameSettings>) => {
@@ -33,122 +18,103 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
 
   return (
     <div className="w-full max-w-md mx-auto space-y-5">
-      {/* Cards to Win */}
-      <SettingRow
+      <SliderSetting
         label="Cards to Win"
-        description="Number of correctly placed songs needed to win the game"
-      >
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => update({ cardsToWin: Math.max(3, settings.cardsToWin - 1) })}
-            disabled={settings.cardsToWin <= 3}
-            className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-white/70
-                       hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed
-                       transition-all flex items-center justify-center text-lg font-bold"
-            aria-label="Decrease cards to win"
-          >
-            &minus;
-          </button>
-          <span className="text-2xl font-bold text-white tabular-nums w-10 text-center">
-            {settings.cardsToWin}
-          </span>
-          <button
-            type="button"
-            onClick={() => update({ cardsToWin: Math.min(20, settings.cardsToWin + 1) })}
-            disabled={settings.cardsToWin >= 20}
-            className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-white/70
-                       hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed
-                       transition-all flex items-center justify-center text-lg font-bold"
-            aria-label="Increase cards to win"
-          >
-            +
-          </button>
-        </div>
-      </SettingRow>
+        description="Correctly placed songs needed to win"
+        value={settings.cardsToWin}
+        min={3}
+        max={20}
+        step={1}
+        formatValue={(v) => `${v}`}
+        onChange={(v) => update({ cardsToWin: v })}
+      />
 
-      {/* Clip Duration */}
-      <SettingRow
+      <SliderSetting
         label="Clip Duration"
-        description="How long each song preview plays before the team must guess"
-      >
-        <div className="grid grid-cols-4 gap-1.5">
-          {CLIP_DURATION_OPTIONS.map((opt) => (
-            <OptionChip
-              key={opt.value}
-              selected={settings.clipDurationSeconds === opt.value}
-              onClick={() => update({ clipDurationSeconds: opt.value })}
-            >
-              {opt.value}s
-            </OptionChip>
-          ))}
-        </div>
-      </SettingRow>
+        description="How long each song preview plays"
+        value={settings.clipDurationSeconds}
+        min={5}
+        max={30}
+        step={5}
+        formatValue={(v) => `${v}s`}
+        onChange={(v) => update({ clipDurationSeconds: v })}
+      />
 
-      {/* Turn Time Limit */}
-      <SettingRow
+      <SliderSetting
         label="Turn Time Limit"
-        description="Maximum time a team has to place their song on the timeline"
-      >
-        <div className="grid grid-cols-3 gap-1.5">
-          {TURN_TIME_OPTIONS.map((opt) => (
-            <OptionChip
-              key={opt.value}
-              selected={settings.turnTimeLimitSeconds === opt.value}
-              onClick={() => update({ turnTimeLimitSeconds: opt.value })}
-            >
-              {opt.value === 0 ? 'None' : `${opt.value}s`}
-            </OptionChip>
-          ))}
-        </div>
-      </SettingRow>
+        description="Time to place a song (0 = no limit)"
+        value={settings.turnTimeLimitSeconds}
+        min={0}
+        max={120}
+        step={15}
+        formatValue={(v) => (v === 0 ? 'None' : `${v}s`)}
+        onChange={(v) => update({ turnTimeLimitSeconds: v })}
+      />
+
+      <SliderSetting
+        label="Challenge Window"
+        description="Time to challenge a placement (0 = no limit)"
+        value={settings.challengeWindowSeconds ?? 0}
+        min={0}
+        max={30}
+        step={5}
+        formatValue={(v) => (v === 0 ? 'No Limit' : `${v}s`)}
+        onChange={(v) => update({ challengeWindowSeconds: v })}
+      />
     </div>
   );
 }
 
-// --- Sub-components ---
+/* ── Slider Setting ────────────────────────────────────── */
 
-function SettingRow({
+function SliderSetting({
   label,
   description,
-  children,
+  value,
+  min,
+  max,
+  step,
+  formatValue,
+  onChange,
 }: {
   label: string;
   description: string;
-  children: React.ReactNode;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  formatValue: (v: number) => string;
+  onChange: (v: number) => void;
 }) {
+  const pct = ((value - min) / (max - min)) * 100;
+
   return (
     <div className="glass-card rounded-xl p-5">
-      <div className="mb-3">
-        <h4 className="text-sm font-semibold text-white">{label}</h4>
-        <p className="text-xs text-white/40 mt-0.5">{description}</p>
+      <div className="flex items-center justify-between mb-3">
+        <div>
+          <h4 className="text-sm font-semibold text-white">{label}</h4>
+          <p className="text-xs text-white/40 mt-0.5">{description}</p>
+        </div>
+        <span className="text-lg font-bold text-[#00d4aa] tabular-nums min-w-[60px] text-right">
+          {formatValue(value)}
+        </span>
       </div>
-      {children}
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className="slider w-full"
+        style={{
+          background: `linear-gradient(to right, #00d4aa ${pct}%, rgba(255,255,255,0.1) ${pct}%)`,
+        }}
+      />
+      <div className="flex justify-between mt-1">
+        <span className="text-[10px] text-white/30">{formatValue(min)}</span>
+        <span className="text-[10px] text-white/30">{formatValue(max)}</span>
+      </div>
     </div>
-  );
-}
-
-function OptionChip({
-  selected,
-  onClick,
-  children,
-}: {
-  selected: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={[
-        'rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 cursor-pointer',
-        selected
-          ? 'bg-[#00d4aa] text-[#0a0e1a] shadow-md shadow-[#00d4aa]/20'
-          : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white',
-      ].join(' ')}
-    >
-      {children}
-    </button>
   );
 }
