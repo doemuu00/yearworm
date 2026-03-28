@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Howl } from 'howler';
 
-type PlayerState = 'idle' | 'playing' | 'ready';
+type PlayerState = 'idle' | 'playing' | 'paused' | 'ready';
 
 interface AudioPlayerProps {
   previewUrl: string | null;
@@ -94,6 +94,9 @@ export default function AudioPlayer({
     rafRef.current = requestAnimationFrame(updateProgress);
   }, [clipDuration, transitionToReady]);
 
+  // Track elapsed time when pausing so we can resume the progress animation
+  const pausedElapsedRef = useRef<number>(0);
+
   const handleTap = useCallback(() => {
     if (state === 'ready') return;
 
@@ -106,9 +109,23 @@ export default function AudioPlayer({
     }
 
     if (state === 'playing') {
-      // Stop early -> transition to ready
-      howlRef.current?.stop();
-      transitionToReady();
+      // Pause playback
+      howlRef.current?.pause();
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      pausedElapsedRef.current = elapsed;
+      setState('paused');
+      return;
+    }
+
+    if (state === 'paused') {
+      // Resume playback
+      howlRef.current?.play();
+      startTimeRef.current = Date.now() - pausedElapsedRef.current * 1000;
+      rafRef.current = requestAnimationFrame(updateProgress);
+      setState('playing');
       return;
     }
 
@@ -135,7 +152,12 @@ export default function AudioPlayer({
     startTimeRef.current = Date.now();
     setState('playing');
     rafRef.current = requestAnimationFrame(updateProgress);
-  }, [state, previewUrl, cleanup, transitionToReady, updateProgress]);
+  }, [state, previewUrl, cleanup, transitionToReady, updateProgress, elapsed]);
+
+  const handlePlaceNow = useCallback(() => {
+    howlRef.current?.stop();
+    transitionToReady();
+  }, [transitionToReady]);
 
   // SVG circle values
   const radius = 54;
@@ -166,7 +188,7 @@ export default function AudioPlayer({
               style={{
                 backgroundImage: `url(${albumArtUrl})`,
                 filter: 'blur(20px)',
-                opacity: state === 'playing' ? 0.5 : 0.3,
+                opacity: state === 'playing' || state === 'paused' ? 0.5 : 0.3,
               }}
             />
 
@@ -187,7 +209,7 @@ export default function AudioPlayer({
                 strokeWidth="4"
               />
               {/* Progress arc */}
-              {state === 'playing' && (
+              {(state === 'playing' || state === 'paused') && (
                 <motion.circle
                   cx="60"
                   cy="60"
@@ -212,7 +234,7 @@ export default function AudioPlayer({
                 className="h-full w-full bg-cover bg-center"
                 style={{
                   backgroundImage: `url(${albumArtUrl})`,
-                  filter: state === 'playing' ? 'blur(2px)' : 'blur(6px)',
+                  filter: state === 'playing' || state === 'paused' ? 'blur(2px)' : 'blur(6px)',
                   transition: 'filter 0.4s ease',
                 }}
               />
@@ -222,7 +244,7 @@ export default function AudioPlayer({
                   className="absolute inset-0"
                   style={{
                     background:
-                      state === 'playing'
+                      state === 'playing' || state === 'paused'
                         ? 'rgba(0,0,0,0.35)'
                         : 'rgba(0,0,0,0.55)',
                     transition: 'background 0.4s ease',
@@ -250,7 +272,6 @@ export default function AudioPlayer({
                 }}
               >
                 {noPreviewFlash ? (
-                  /* No preview flash */
                   <motion.span
                     className="text-xs font-medium text-white/60"
                     initial={{ opacity: 0 }}
@@ -265,23 +286,35 @@ export default function AudioPlayer({
                     <rect x="14" y="4" width="4" height="16" rx="1" />
                   </svg>
                 ) : (
-                  /* Play / music note icon */
+                  /* Play icon (idle or paused) */
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
                     <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
                   </svg>
                 )}
               </motion.div>
 
-              {/* "Tap to listen" label below button (idle only) */}
-              <AnimatePresence>
+              {/* Label below button */}
+              <AnimatePresence mode="wait">
                 {state === 'idle' && !noPreviewFlash && (
                   <motion.span
+                    key="idle-label"
                     className="mt-2 text-xs font-medium text-white/50"
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -4 }}
                   >
                     {previewUrl ? 'Tap to listen' : 'Tap to reveal'}
+                  </motion.span>
+                )}
+                {state === 'paused' && (
+                  <motion.span
+                    key="paused-label"
+                    className="mt-2 text-xs font-medium text-white/50"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    Tap to resume
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -325,11 +358,11 @@ export default function AudioPlayer({
         )}
       </AnimatePresence>
 
-      {/* Time remaining (playing only) */}
+      {/* Time remaining + Place now button */}
       <AnimatePresence>
-        {state === 'playing' && (
+        {(state === 'playing' || state === 'paused') && (
           <motion.div
-            className="text-center"
+            className="flex items-center gap-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -337,6 +370,19 @@ export default function AudioPlayer({
             <span className="text-xs font-mono text-white/40">
               {Math.ceil(timeRemaining)}s remaining
             </span>
+            <motion.button
+              className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+              style={{
+                background: `${teamColor}22`,
+                color: teamColor,
+                border: `1px solid ${teamColor}44`,
+              }}
+              onClick={handlePlaceNow}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Place now
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
