@@ -3,6 +3,9 @@
 # playwright-cli snapshots
 /.playwright-cli
 
+# copyrighted song files (local testing only)
+/public/songs/*.mp3
+
 # dependencies
 /node_modules
 /.pnp
