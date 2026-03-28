@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState as useStateReact } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PlacedSong, Team } from '@/lib/game/types';
@@ -126,7 +126,7 @@ function PlacedCard({ song, team, index, compact, leftPercent }: PlacedCardProps
         left: `${leftPercent}%`,
         transform: `translateX(-${cardW / 2}px)`,
         top: 0,
-        zIndex: 10 + index,
+        zIndex: 20 + index,
       }}
     >
       {/* Card */}
@@ -227,6 +227,15 @@ export default function Timeline({
   const totalH = axisTop + dotH / 2 + 4 + 16 + 8; // + year label + padding
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const [containerW, setContainerW] = useStateReact(compact ? 600 : 900);
+
+  // Measure actual container width for accurate drop zone positioning
+  useEffect(() => {
+    if (innerRef.current) {
+      setContainerW(innerRef.current.offsetWidth);
+    }
+  }, [isDragActive]);
 
   // Auto-scroll to show latest placed card
   useEffect(() => {
@@ -243,12 +252,9 @@ export default function Timeline({
     ? ''
     : 'opacity-40 grayscale pointer-events-none';
 
-  // Card exclusion zone as percentage of the container
-  // Cards are centered on their year position via translateX(-50%), so we need
-  // to exclude cardWidth/2 on each side, plus a small gap for visual breathing room
-  const containerMinW = compact ? 600 : 900;
+  // Card exclusion zone: convert card pixel width to percentage of actual container
   const cardW = compact ? 48 : 68;
-  const cardExclusionPct = ((cardW + 16) / containerMinW) * 100 / 2; // half card + 8px gap on each side
+  const cardExclusionPct = ((cardW / 2 + 12) / containerW) * 100; // half card width + 12px gap, as percentage
 
   // Build drop zones between cards (and at edges), avoiding card positions
   const dropZones: { id: string; leftPct: number; widthPct: number }[] = [];
@@ -256,7 +262,7 @@ export default function Timeline({
     // Zone before first card
     const firstPct = yearToPercent(sorted[0].releaseYear);
     const beforeEnd = firstPct - cardExclusionPct;
-    if (beforeEnd > 0) {
+    if (beforeEnd > 2) {
       dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: beforeEnd });
     }
     // Zones between cards
@@ -266,7 +272,7 @@ export default function Timeline({
       const zoneLeft = leftCardPct + cardExclusionPct;
       const zoneRight = rightCardPct - cardExclusionPct;
       const zoneWidth = zoneRight - zoneLeft;
-      if (zoneWidth > 1) {
+      if (zoneWidth > 2) {
         dropZones.push({
           id: `drop-${i + 1}`,
           leftPct: zoneLeft,
@@ -277,7 +283,7 @@ export default function Timeline({
     // Zone after last card
     const lastPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
     const afterStart = lastPct + cardExclusionPct;
-    if (afterStart < 100) {
+    if (afterStart < 98) {
       dropZones.push({
         id: `drop-${sorted.length}`,
         leftPct: afterStart,
@@ -296,6 +302,7 @@ export default function Timeline({
         style={{ scrollBehavior: 'smooth' }}
       >
         <div
+          ref={innerRef}
           className="relative"
           style={{
             minWidth: compact ? 600 : 900,
