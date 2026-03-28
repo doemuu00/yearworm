@@ -78,14 +78,6 @@ export default function PassAndPlayInterstitial({
 
         {/* Message */}
         <div>
-          <motion.p
-            className="text-lg text-white/60 mb-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-          >
-            Pass the phone to
-          </motion.p>
           <motion.h1
             className="text-4xl font-black tracking-tight"
             style={{
@@ -96,9 +88,8 @@ export default function PassAndPlayInterstitial({
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.35 }}
           >
-            {label}
+            {label}&apos;s Turn
           </motion.h1>
-        </div>
 
         {/* Ready button */}
         <motion.div
@@ -115,14 +106,6 @@ export default function PassAndPlayInterstitial({
           </Button>
         </motion.div>
 
-        <motion.p
-          className="text-xs text-white/30"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-        >
-          Don&apos;t peek at the other team&apos;s timeline!
-        </motion.p>
       </motion.div>
     </motion.div>
   );
