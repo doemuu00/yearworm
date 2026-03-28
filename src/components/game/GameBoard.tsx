@@ -192,6 +192,12 @@ export default function GameBoard({
 
   const showDraggableCard = songReady && currentSong;
 
+  // Always show Team A on left, Team B on right
+  const teamATimeline = activeTeam === 'A' ? activeTimeline : opponentTimeline;
+  const teamBTimeline = activeTeam === 'B' ? activeTimeline : opponentTimeline;
+  const teamAIsActive = activeTeam === 'A';
+  const teamBIsActive = activeTeam === 'B';
+
   return (
     <DndContext
       sensors={sensors}
@@ -199,31 +205,27 @@ export default function GameBoard({
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex flex-col gap-4 w-full">
-        {/* 1. Opponent timeline (top, compact, greyed out, locked) */}
-        <div>
+      <div className="flex gap-3 w-full items-stretch">
+        {/* Left: Team A timeline */}
+        <div className="flex-1 min-w-0">
           <h3
             className="text-[10px] font-semibold uppercase tracking-wider mb-1"
-            style={{ color: teamColor(opponentTeam), opacity: 0.5 }}
+            style={{ color: teamColor('A'), opacity: teamAIsActive ? 0.8 : 0.4 }}
           >
-            {opponentTeam === 'A' ? 'Team A' : 'Team B'} Timeline
-            <span className="ml-2 text-white/30">
-              ({opponentTimeline.length} {opponentTimeline.length === 1 ? 'card' : 'cards'})
-            </span>
+            Team A
           </h3>
-
           <Timeline
-            timeline={opponentTimeline}
-            team={opponentTeam}
-            isActiveTeam={false}
-            onPlaceSong={() => {}}
-            isDragActive={false}
-            compact
+            timeline={teamATimeline}
+            team="A"
+            isActiveTeam={teamAIsActive}
+            onPlaceSong={teamAIsActive ? onPlaceSong : () => {}}
+            isDragActive={teamAIsActive ? isDragActive : false}
+            compact={!teamAIsActive}
           />
         </div>
 
-        {/* 2. Audio player / Draggable card (between timelines) */}
-        <div className="flex justify-center py-3">
+        {/* Center: Audio player / Draggable card */}
+        <div className="flex flex-col items-center justify-center" style={{ width: 140 }}>
           {showDraggableCard ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -237,21 +239,21 @@ export default function GameBoard({
           )}
         </div>
 
-        {/* 3. Active team timeline (bottom, full size, with drop zones) */}
-        <div>
+        {/* Right: Team B timeline */}
+        <div className="flex-1 min-w-0">
           <h3
-            className="text-xs font-semibold uppercase tracking-wider mb-2"
-            style={{ color: teamColor(activeTeam), opacity: 0.7 }}
+            className="text-[10px] font-semibold uppercase tracking-wider mb-1 text-right"
+            style={{ color: teamColor('B'), opacity: teamBIsActive ? 0.8 : 0.4 }}
           >
-            {activeTeam === 'A' ? 'Team A' : 'Team B'} Timeline
+            Team B
           </h3>
-
           <Timeline
-            timeline={activeTimeline}
-            team={activeTeam}
-            isActiveTeam={true}
-            onPlaceSong={onPlaceSong}
-            isDragActive={isDragActive}
+            timeline={teamBTimeline}
+            team="B"
+            isActiveTeam={teamBIsActive}
+            onPlaceSong={teamBIsActive ? onPlaceSong : () => {}}
+            isDragActive={teamBIsActive ? isDragActive : false}
+            compact={!teamBIsActive}
           />
         </div>
       </div>
