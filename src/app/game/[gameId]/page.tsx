@@ -78,10 +78,11 @@ export default function GamePage() {
 
   /* ── Turn timer ───────────────────────────────────────── */
   const handleTurnTimeout = useCallback(() => {
-    // Auto-skip on turn timeout (no token cost for timeout)
-    setPhase('pass-device');
+    // Auto-skip on turn timeout (no token cost — just advance turn)
+    nextTurn();
     audio.stop();
-  }, [audio]);
+    setPhase('pass-device');
+  }, [nextTurn, audio]);
 
   const turnTimer = useTimer({ onTimeout: handleTurnTimeout });
 
