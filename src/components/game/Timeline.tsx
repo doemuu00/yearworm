@@ -11,7 +11,6 @@ const YEAR_MIN = 1915;
 const YEAR_MAX = 2030;
 const YEAR_RANGE = YEAR_MAX - YEAR_MIN;
 
-// Decade markers to show on the axis
 const DECADES = [1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
 
 /* ── Props ──────────────────────────────────────────────── */
@@ -33,36 +32,35 @@ const teamColor = (team: Team) =>
 const teamColorRgb = (team: Team) =>
   team === 'A' ? '0, 212, 170' : '139, 92, 246';
 
-/** Map a year to a percentage position on the axis */
+/** Map a year to a percentage position — newest (2030) at top (0%), oldest (1915) at bottom (100%) */
 function yearToPercent(year: number): number {
-  return ((year - YEAR_MIN) / YEAR_RANGE) * 100;
+  return ((YEAR_MAX - year) / YEAR_RANGE) * 100;
 }
 
-/* ── Drop Zone ──────────────────────────────────────────── */
+/* ── Drop Zone (vertical) ─────────────────────────────── */
 
 interface DropZoneProps {
   id: string;
   team: Team;
-  leftPercent: number;
-  widthPercent: number;
+  topPercent: number;
+  heightPercent: number;
   compact: boolean;
 }
 
-function DropZone({ id, team, leftPercent, widthPercent, compact }: DropZoneProps) {
+function DropZone({ id, team, topPercent, heightPercent, compact }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id });
   const color = teamColor(team);
   const rgb = teamColorRgb(team);
-  const h = compact ? 60 : 80;
 
   return (
     <div
       ref={setNodeRef}
       className="absolute transition-all duration-150"
       style={{
-        left: `${leftPercent}%`,
-        width: `${widthPercent}%`,
-        top: 0,
-        height: h,
+        top: `${topPercent}%`,
+        height: `${heightPercent}%`,
+        left: compact ? 28 : 36,
+        right: 0,
         zIndex: isOver ? 10 : 5,
       }}
     >
@@ -74,7 +72,7 @@ function DropZone({ id, team, leftPercent, widthPercent, compact }: DropZoneProp
             : `rgba(${rgb}, 0.03)`,
           border: isOver
             ? `2px dashed ${color}`
-            : '2px dashed rgba(255,255,255,0.08)',
+            : '2px dashed rgba(255,255,255,0.06)',
           boxShadow: isOver
             ? `0 0 20px rgba(${rgb}, 0.3)`
             : 'none',
@@ -99,39 +97,48 @@ function DropZone({ id, team, leftPercent, widthPercent, compact }: DropZoneProp
   );
 }
 
-/* ── Placed Card ────────────────────────────────────────── */
+/* ── Placed Card (vertical) ───────────────────────────── */
 
 interface PlacedCardProps {
   song: PlacedSong;
   team: Team;
   index: number;
   compact: boolean;
-  leftPercent: number;
+  topPercent: number;
 }
 
-function PlacedCard({ song, team, index, compact, leftPercent }: PlacedCardProps) {
+function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps) {
   const color = teamColor(team);
   const rgb = teamColorRgb(team);
   const cardW = compact ? 48 : 68;
-  const cardH = compact ? 60 : 80;
+  const cardH = compact ? 36 : 44;
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.7, y: 16 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0.7, x: 16 }}
+      animate={{ opacity: 1, scale: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25, delay: index * 0.04 }}
-      className="absolute flex flex-col items-center"
+      className="absolute flex items-center"
       style={{
-        left: `${leftPercent}%`,
-        transform: `translateX(-${cardW / 2}px)`,
-        top: 0,
+        top: `${topPercent}%`,
+        transform: `translateY(-${cardH / 2}px)`,
+        left: compact ? 36 : 48,
         zIndex: 20 + index,
       }}
     >
+      {/* Connector line from axis to card */}
+      <div
+        style={{
+          width: compact ? 6 : 8,
+          height: 2,
+          background: `rgba(${rgb}, 0.5)`,
+        }}
+      />
+
       {/* Card */}
       <div
-        className="relative rounded-lg overflow-hidden"
+        className="relative rounded-lg overflow-hidden flex-shrink-0"
         style={{
           width: cardW,
           height: cardH,
@@ -150,20 +157,22 @@ function PlacedCard({ song, team, index, compact, leftPercent }: PlacedCardProps
           <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-1">
-          <p className={`${compact ? 'text-[8px]' : 'text-[9px]'} font-semibold text-white leading-tight truncate`}>
-            {song.title}
-          </p>
-          {!compact && (
-            <p className="text-[8px] text-white/60 leading-tight truncate">
-              {song.artist}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/30 to-transparent flex items-center p-1.5">
+          <div className="min-w-0">
+            <p className={`${compact ? 'text-[7px]' : 'text-[8px]'} font-semibold text-white leading-tight truncate`}>
+              {song.title}
             </p>
-          )}
+            {!compact && (
+              <p className="text-[7px] text-white/60 leading-tight truncate">
+                {song.artist}
+              </p>
+            )}
+          </div>
         </div>
 
         {song.placedCorrectly !== undefined && (
           <div
-            className="absolute top-0.5 right-0.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px]"
+            className="absolute top-0.5 right-0.5 w-3 h-3 rounded-full flex items-center justify-center text-[6px]"
             style={{
               background: song.placedCorrectly
                 ? 'rgba(0, 212, 170, 0.9)'
@@ -175,29 +184,9 @@ function PlacedCard({ song, team, index, compact, leftPercent }: PlacedCardProps
         )}
       </div>
 
-      {/* Connector line from card to axis */}
-      <div
-        style={{
-          width: 2,
-          height: compact ? 6 : 8,
-          background: `rgba(${rgb}, 0.5)`,
-        }}
-      />
-
-      {/* Node dot on the axis */}
-      <div
-        style={{
-          width: compact ? 6 : 8,
-          height: compact ? 6 : 8,
-          borderRadius: '50%',
-          background: color,
-          boxShadow: `0 0 6px rgba(${rgb}, 0.6)`,
-        }}
-      />
-
-      {/* Year label below axis */}
+      {/* Year label to the right of card */}
       <span
-        className={`${compact ? 'text-[9px]' : 'text-[10px]'} font-mono font-bold mt-0.5`}
+        className={`${compact ? 'text-[8px]' : 'text-[9px]'} font-mono font-bold ml-1.5`}
         style={{ color }}
       >
         {song.releaseYear}
@@ -206,7 +195,7 @@ function PlacedCard({ song, team, index, compact, leftPercent }: PlacedCardProps
   );
 }
 
-/* ── Timeline ───────────────────────────────────────────── */
+/* ── Timeline (vertical) ──────────────────────────────── */
 
 export default function Timeline({
   timeline,
@@ -220,105 +209,108 @@ export default function Timeline({
   const rgb = teamColorRgb(team);
   const showDropZones = isDragActive && isActiveTeam;
 
-  const cardH = compact ? 60 : 80;
-  const connectorH = compact ? 6 : 8;
-  const dotH = compact ? 6 : 8;
-  const axisTop = cardH + connectorH + dotH / 2; // where the axis line sits
-  const totalH = axisTop + dotH / 2 + 4 + 16 + 8; // + year label + padding
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const [containerW, setContainerW] = useStateReact(compact ? 600 : 900);
+  const [containerH, setContainerH] = useStateReact(compact ? 300 : 500);
 
-  // Measure actual container width for accurate drop zone positioning
+  // Measure actual container height
   useEffect(() => {
     if (innerRef.current) {
-      setContainerW(innerRef.current.offsetWidth);
+      setContainerH(innerRef.current.offsetHeight);
     }
   }, [isDragActive]);
 
-  // Auto-scroll to show latest placed card
+  // Auto-scroll to show latest placed card (newest = top)
   useEffect(() => {
     if (sorted.length > 0 && scrollRef.current) {
-      const lastYear = sorted[sorted.length - 1].releaseYear;
-      const pct = yearToPercent(lastYear) / 100;
-      const scrollTarget = scrollRef.current.scrollWidth * pct - scrollRef.current.clientWidth / 2;
-      scrollRef.current.scrollTo({ left: scrollTarget, behavior: 'smooth' });
+      const newestYear = sorted[sorted.length - 1].releaseYear;
+      const pct = yearToPercent(newestYear) / 100;
+      const scrollTarget = scrollRef.current.scrollHeight * pct - scrollRef.current.clientHeight / 2;
+      scrollRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' });
     }
   }, [sorted.length, sorted]);
 
-  /* Wrapper classes for opponent (greyed out + locked) */
   const wrapperClasses = isActiveTeam
     ? ''
     : 'opacity-40 grayscale pointer-events-none';
 
-  // Card exclusion zone: convert card pixel width to percentage of actual container
-  const cardW = compact ? 48 : 68;
-  const cardExclusionPct = ((cardW / 2 + 12) / containerW) * 100; // half card width + 12px gap, as percentage
+  // Card exclusion zone: convert card pixel height to percentage of container
+  const cardH = compact ? 36 : 44;
+  const cardExclusionPct = ((cardH / 2 + 10) / containerH) * 100;
 
-  // Build drop zones between cards (and at edges), avoiding card positions
-  const dropZones: { id: string; leftPct: number; widthPct: number }[] = [];
+  // Build drop zones between cards (vertical)
+  const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
-    // Zone before first card
-    const firstPct = yearToPercent(sorted[0].releaseYear);
-    const beforeEnd = firstPct - cardExclusionPct;
-    if (beforeEnd > 2) {
-      dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: beforeEnd });
+    // Sorted by year ascending, but on screen newest is at top
+    // So sorted[last] is at the top (lowest topPercent), sorted[0] at bottom
+
+    // Zone above the newest card (top of timeline)
+    const newestPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
+    if (newestPct - cardExclusionPct > 2) {
+      dropZones.push({
+        id: `drop-${sorted.length}`,
+        topPct: 0,
+        heightPct: newestPct - cardExclusionPct,
+      });
     }
-    // Zones between cards
-    for (let i = 0; i < sorted.length - 1; i++) {
-      const leftCardPct = yearToPercent(sorted[i].releaseYear);
-      const rightCardPct = yearToPercent(sorted[i + 1].releaseYear);
-      const zoneLeft = leftCardPct + cardExclusionPct;
-      const zoneRight = rightCardPct - cardExclusionPct;
-      const zoneWidth = zoneRight - zoneLeft;
-      if (zoneWidth > 2) {
+
+    // Zones between cards (iterate from newest to oldest on screen)
+    for (let i = sorted.length - 1; i > 0; i--) {
+      const upperPct = yearToPercent(sorted[i].releaseYear);
+      const lowerPct = yearToPercent(sorted[i - 1].releaseYear);
+      const zoneTop = upperPct + cardExclusionPct;
+      const zoneBottom = lowerPct - cardExclusionPct;
+      const zoneHeight = zoneBottom - zoneTop;
+      if (zoneHeight > 2) {
         dropZones.push({
-          id: `drop-${i + 1}`,
-          leftPct: zoneLeft,
-          widthPct: zoneWidth,
+          id: `drop-${i}`,
+          topPct: zoneTop,
+          heightPct: zoneHeight,
         });
       }
     }
-    // Zone after last card
-    const lastPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
-    const afterStart = lastPct + cardExclusionPct;
-    if (afterStart < 98) {
+
+    // Zone below the oldest card (bottom of timeline)
+    const oldestPct = yearToPercent(sorted[0].releaseYear);
+    const belowStart = oldestPct + cardExclusionPct;
+    if (belowStart < 98) {
       dropZones.push({
-        id: `drop-${sorted.length}`,
-        leftPct: afterStart,
-        widthPct: 100 - afterStart,
+        id: 'drop-0',
+        topPct: belowStart,
+        heightPct: 100 - belowStart,
       });
     }
   } else if (showDropZones && sorted.length === 0) {
-    dropZones.push({ id: 'drop-0', leftPct: 0, widthPct: 100 });
+    dropZones.push({ id: 'drop-0', topPct: 0, heightPct: 100 });
   }
+
+  const minH = compact ? 200 : 350;
 
   return (
     <div className={`relative ${wrapperClasses}`}>
       <div
         ref={scrollRef}
-        className="glass-card overflow-x-auto"
-        style={{ scrollBehavior: 'smooth' }}
+        className="glass-card overflow-y-auto"
+        style={{ scrollBehavior: 'smooth', maxHeight: compact ? 200 : 400 }}
       >
         <div
           ref={innerRef}
           className="relative"
           style={{
-            minWidth: compact ? 600 : 900,
-            height: totalH,
-            padding: `0 ${compact ? 12 : 20}px`,
+            minHeight: minH,
+            height: compact ? 300 : 500,
+            padding: `${compact ? 8 : 12}px 0`,
           }}
         >
-          {/* ── Axis line ──────────────────────────────── */}
+          {/* ── Vertical axis line ─────────────────────── */}
           <div
             style={{
               position: 'absolute',
-              left: compact ? 12 : 20,
-              right: compact ? 12 : 20,
-              top: axisTop,
-              height: 2,
-              background: `linear-gradient(90deg, transparent, rgba(${rgb}, 0.3) 5%, rgba(${rgb}, 0.3) 95%, transparent)`,
+              left: compact ? 30 : 40,
+              top: compact ? 8 : 12,
+              bottom: compact ? 8 : 12,
+              width: 2,
+              background: `linear-gradient(180deg, transparent, rgba(${rgb}, 0.3) 5%, rgba(${rgb}, 0.3) 95%, transparent)`,
               boxShadow: `0 0 6px rgba(${rgb}, 0.1)`,
             }}
           />
@@ -329,28 +321,28 @@ export default function Timeline({
             return (
               <div
                 key={decade}
-                className="absolute flex flex-col items-center"
+                className="absolute flex items-center"
                 style={{
-                  left: `${pct}%`,
-                  top: axisTop - 4,
-                  transform: 'translateX(-50%)',
+                  top: `${pct}%`,
+                  left: 0,
+                  transform: 'translateY(-50%)',
                 }}
               >
-                {/* Tick mark */}
-                <div
-                  style={{
-                    width: 1,
-                    height: 10,
-                    background: `rgba(${rgb}, 0.15)`,
-                  }}
-                />
                 {/* Decade label */}
                 <span
-                  className={`${compact ? 'text-[7px]' : 'text-[8px]'} font-mono mt-0.5 select-none`}
+                  className={`${compact ? 'text-[7px] w-6' : 'text-[8px] w-8'} font-mono text-right pr-1 select-none`}
                   style={{ color: `rgba(${rgb}, 0.25)` }}
                 >
                   {decade}
                 </span>
+                {/* Tick mark */}
+                <div
+                  style={{
+                    width: 8,
+                    height: 1,
+                    background: `rgba(${rgb}, 0.15)`,
+                  }}
+                />
               </div>
             );
           })}
@@ -361,8 +353,8 @@ export default function Timeline({
               key={dz.id}
               id={dz.id}
               team={team}
-              leftPercent={dz.leftPct}
-              widthPercent={dz.widthPct}
+              topPercent={dz.topPct}
+              heightPercent={dz.heightPct}
               compact={compact}
             />
           ))}
@@ -375,17 +367,15 @@ export default function Timeline({
               team={team}
               index={i}
               compact={compact}
-              leftPercent={yearToPercent(song.releaseYear)}
+              topPercent={yearToPercent(song.releaseYear)}
             />
           ))}
 
           {/* ── Empty state ─────────────────────────────── */}
           {sorted.length === 0 && !showDropZones && (
-            <div
-              className="absolute inset-0 flex items-center justify-center"
-            >
+            <div className="absolute inset-0 flex items-center justify-center">
               <p className="text-white/30 text-sm select-none">
-                {isActiveTeam ? 'Listen & place songs on the timeline' : 'Opponent timeline'}
+                {isActiveTeam ? 'Listen & place songs' : 'Opponent timeline'}
               </p>
             </div>
           )}
