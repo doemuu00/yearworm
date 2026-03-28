@@ -1,17 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useSupabase } from '@/components/providers/SupabaseProvider';
 import Button from '@/components/ui/Button';
 
 export default function Home() {
-  const { supabase } = useSupabase();
+  const { supabase, session } = useSupabase();
+  const router = useRouter();
   const [showJoin, setShowJoin] = useState(false);
   const [gameCode, setGameCode] = useState('');
   const [loading, setLoading] = useState(false);
 
   async function handleCreateGame() {
+    // If already authenticated with Spotify, go straight to lobby
+    if (session) {
+      router.push('/lobby/local');
+      return;
+    }
+    // Otherwise, trigger Spotify OAuth first
     setLoading(true);
     await supabase.auth.signInWithOAuth({
       provider: 'spotify',
@@ -21,6 +29,10 @@ export default function Home() {
           'user-read-email playlist-read-private playlist-read-collaborative streaming user-read-playback-state',
       },
     });
+  }
+
+  function handleQuickPlay() {
+    router.push('/lobby/local?demo=true');
   }
 
   async function handleJoinGame() {
@@ -109,6 +121,15 @@ export default function Home() {
             onClick={handleCreateGame}
           >
             Create Game
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onClick={handleQuickPlay}
+          >
+            Quick Play (Demo)
           </Button>
 
           {!showJoin ? (
