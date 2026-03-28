@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import {
   DndContext,
+  DragOverlay,
   useDraggable,
   PointerSensor,
   TouchSensor,
@@ -47,12 +48,9 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
   const rgb = teamColorRgb(team);
 
   const style: React.CSSProperties = {
-    transform: transform
-      ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
-      : undefined,
-    zIndex: isDragging ? 50 : 1,
     cursor: isDragging ? 'grabbing' : 'grab',
     touchAction: 'none',
+    opacity: isDragging ? 0.3 : 1,
   };
 
   return (
@@ -62,10 +60,7 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
       {...listeners}
       {...attributes}
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{
-        opacity: isDragging ? 0.85 : 1,
-        scale: isDragging ? 1.08 : 1,
-      }}
+      animate={{ scale: 1, opacity: isDragging ? 0.3 : 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
       className="relative w-[120px] h-[120px] rounded-xl overflow-hidden select-none shrink-0"
       role="button"
@@ -105,6 +100,46 @@ function DraggableSongCard({ song, team }: DraggableSongCardProps) {
         </span>
       </div>
     </motion.div>
+  );
+}
+
+/* ── Drag overlay card (floating copy under cursor) ────── */
+
+function DragOverlayCard({ song, team }: { song: Song; team: Team }) {
+  const color = teamColor(team);
+  const rgb = teamColorRgb(team);
+
+  return (
+    <div
+      className="relative w-[120px] h-[120px] rounded-xl overflow-hidden select-none"
+      style={{
+        boxShadow: `0 0 32px rgba(${rgb}, 0.5), 0 20px 40px rgba(0,0,0,0.5)`,
+        transform: 'scale(1.1)',
+      }}
+    >
+      {song.albumArtUrl ? (
+        <img
+          src={song.albumArtUrl}
+          alt="Mystery song"
+          className="w-full h-full object-cover"
+          style={{ filter: 'blur(16px) brightness(0.5)' }}
+          draggable={false}
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
+      )}
+      <div
+        className="absolute inset-0 rounded-xl"
+        style={{
+          border: `2px solid ${color}`,
+          boxShadow: `0 0 24px rgba(${rgb}, 0.5), inset 0 0 24px rgba(${rgb}, 0.1)`,
+        }}
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+        <span className="text-3xl font-bold text-white/80">?</span>
+        <span className="text-[10px] text-white/50 font-medium">Drop on timeline</span>
+      </div>
+    </div>
   );
 }
 
@@ -192,6 +227,13 @@ export default function GameBoard({
           </div>
         )}
       </div>
+
+      {/* Floating drag overlay that follows the cursor */}
+      <DragOverlay dropAnimation={null}>
+        {isDragActive && currentSong ? (
+          <DragOverlayCard song={currentSong} team={team} />
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }
