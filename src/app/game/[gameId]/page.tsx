@@ -302,46 +302,14 @@ export default function GamePage() {
               revealed={revealed}
               clipDuration={settings.clipDurationSeconds}
               onSongReady={handleSongReady}
+              onSkip={handleSkip}
+              canSkip={canSkip}
               teamColor={getTeamColor(currentTeam)}
             />
           }
         />
       </div>
 
-      {/* ── Floating: Skip button ───────────────────────── */}
-      <AnimatePresence>
-        {phase === 'playing' && currentSong && (
-          <motion.div
-            className="fixed bottom-6 left-1/2 z-20"
-            style={{ transform: 'translateX(-50%)' }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.2 }}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSkip}
-              disabled={!canSkip}
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-              >
-                <path d="M5 4l10 8-10 8V4z" />
-                <line x1="19" y1="5" x2="19" y2="19" />
-              </svg>
-              Skip (1 token)
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Modal: Challenge window ─────────────────────── */}
       <ChallengeModal
