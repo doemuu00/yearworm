@@ -266,20 +266,27 @@ export default function AudioPlayer({
               style={{ cursor: 'pointer' }}
             >
               <motion.div
-                className="flex items-center justify-center rounded-full text-center"
+                className="flex items-center justify-center rounded-full"
                 style={{
-                  width: 72,
-                  height: 72,
+                  width: 56,
+                  height: 56,
                   background: 'rgba(0,0,0,0.5)',
                   backdropFilter: 'blur(8px)',
                   border: `1.5px solid ${state === 'playing' ? `${teamColor}66` : 'rgba(255,255,255,0.2)'}`,
                 }}
               >
-                <span className={`text-xs font-semibold ${state === 'playing' ? 'text-white/80' : 'text-white/60'}`}>
-                  {state === 'idle' ? (previewUrl ? 'Tap to start' : 'Tap to reveal') :
-                   state === 'playing' ? 'Playing...' :
-                   'Paused'}
-                </span>
+                {state === 'playing' ? (
+                  /* Pause icon */
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  /* Play icon */
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
+                  </svg>
+                )}
               </motion.div>
 
             </motion.button>
@@ -340,77 +347,75 @@ export default function AudioPlayer({
         )}
       </AnimatePresence>
 
-      {/* Controls row: pause/resume + stop + skip */}
+      {/* Controls: play/pause + stop + skip (icon-only) */}
       <AnimatePresence>
         {(state === 'playing' || state === 'paused') && (
           <motion.div
-            className="flex items-center gap-2"
+            className="flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Pause / Resume */}
+            {/* Play / Pause */}
             <motion.button
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+              className="flex items-center justify-center rounded-full transition-colors"
               style={{
-                background: 'rgba(255,255,255,0.05)',
-                color: 'rgba(255,255,255,0.7)',
+                width: 40, height: 40,
+                background: 'rgba(255,255,255,0.08)',
+                color: 'rgba(255,255,255,0.8)',
                 border: '1px solid rgba(255,255,255,0.15)',
               }}
               onClick={handleTap}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title={state === 'playing' ? 'Pause' : 'Resume'}
             >
               {state === 'playing' ? (
-                <>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-                  Pause
-                </>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
               ) : (
-                <>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" /></svg>
-                  Resume
-                </>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" /></svg>
               )}
             </motion.button>
 
-            {/* Stop (place the song) */}
+            {/* Stop / Place */}
             <motion.button
-              className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+              className="flex items-center justify-center rounded-full transition-colors"
               style={{
+                width: 40, height: 40,
                 background: `${teamColor}22`,
                 color: teamColor,
                 border: `1px solid ${teamColor}44`,
               }}
               onClick={handlePlaceNow}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="Stop & place song"
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
-              Place
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
             </motion.button>
 
-            {/* Skip (costs token) */}
+            {/* Skip */}
             {onSkip && (
               <motion.button
-                className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors"
+                className="flex items-center justify-center rounded-full transition-colors"
                 style={{
+                  width: 40, height: 40,
                   background: canSkip ? 'rgba(255,255,255,0.05)' : 'transparent',
-                  color: canSkip ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.15)',
+                  color: canSkip ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
                   border: `1px solid ${canSkip ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'}`,
                   cursor: canSkip ? 'pointer' : 'not-allowed',
                 }}
                 onClick={canSkip ? onSkip : undefined}
-                whileHover={canSkip ? { scale: 1.05 } : undefined}
-                whileTap={canSkip ? { scale: 0.95 } : undefined}
+                whileHover={canSkip ? { scale: 1.1 } : undefined}
+                whileTap={canSkip ? { scale: 0.9 } : undefined}
+                title={canSkip ? 'Skip (1 token)' : 'Not enough tokens'}
               >
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M5 4l10 8-10 8V4z" /><line x1="19" y1="5" x2="19" y2="19" /></svg>
-                Skip
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 4l10 8-10 8V4z" fill="currentColor" /><line x1="19" y1="5" x2="19" y2="19" /></svg>
               </motion.button>
             )}
 
-            {/* Time remaining */}
-            <span className="text-[10px] font-mono text-white/30 ml-1">
+            {/* Time */}
+            <span className="text-[10px] font-mono text-white/25">
               {Math.ceil(timeRemaining)}s
             </span>
           </motion.div>
