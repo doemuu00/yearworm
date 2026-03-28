@@ -330,7 +330,7 @@ export default function AudioPlayer({
             <AnimatePresence>
               {state === 'idle' && !noPreviewFlash && (
                 <motion.div
-                  className="absolute inset-0 rounded-full"
+                  className="absolute inset-0 rounded-full pointer-events-none"
                   style={{ border: '2px solid rgba(255,255,255,0.15)' }}
                   initial={{ scale: 1, opacity: 0.4 }}
                   animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.1, 0.4] }}
@@ -344,7 +344,7 @@ export default function AudioPlayer({
               )}
               {state === 'playing' && (
                 <motion.div
-                  className="absolute inset-0 rounded-full"
+                  className="absolute inset-0 rounded-full pointer-events-none"
                   style={{ border: `2px solid ${teamColor}4d` }}
                   initial={{ scale: 1, opacity: 0.6 }}
                   animate={{
