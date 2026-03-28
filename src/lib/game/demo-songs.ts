@@ -11,7 +11,7 @@ export const DEMO_SONGS: Song[] = [
   { spotifyId: 'demo-03', title: 'Respect', artist: 'Aretha Franklin', albumArtUrl: '', previewUrl: null, releaseYear: 1967 },
 
   // 1970s
-  { spotifyId: 'demo-04', title: 'Bohemian Rhapsody', artist: 'Queen', albumArtUrl: '', previewUrl: null, releaseYear: 1975 },
+  { spotifyId: '3z8h0TU7ReDPLIbEnYhWZb', title: 'Bohemian Rhapsody', artist: 'Queen', albumArtUrl: 'https://i.scdn.co/image/ab67616d0000b273ce4f1737bc8a646c8c4bd25a', previewUrl: 'https://p.scdn.co/mp3-preview/8f6e0c4ef4c07d53d8c1a0e77204eed5cef4a070', releaseYear: 1975 },
   { spotifyId: 'demo-05', title: 'Stayin\' Alive', artist: 'Bee Gees', albumArtUrl: '', previewUrl: null, releaseYear: 1977 },
   { spotifyId: 'demo-06', title: 'Hotel California', artist: 'Eagles', albumArtUrl: '', previewUrl: null, releaseYear: 1977 },
   { spotifyId: 'demo-07', title: 'Imagine', artist: 'John Lennon', albumArtUrl: '', previewUrl: null, releaseYear: 1971 },

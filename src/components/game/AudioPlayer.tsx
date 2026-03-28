@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Howl } from 'howler';
 
+type PlayerState = 'idle' | 'playing' | 'ready';
+
 interface AudioPlayerProps {
   previewUrl: string | null;
   albumArtUrl: string;
@@ -12,6 +14,8 @@ interface AudioPlayerProps {
   revealed?: boolean;
   clipDuration?: number;
   onClipEnd?: () => void;
+  onSongReady?: () => void;
+  teamColor?: string;
 }
 
 export default function AudioPlayer({
@@ -22,14 +26,20 @@ export default function AudioPlayer({
   revealed = false,
   clipDuration = 15,
   onClipEnd,
+  onSongReady,
+  teamColor = '#00d4aa',
 }: AudioPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [state, setState] = useState<PlayerState>('idle');
   const [progress, setProgress] = useState(0);
   const [elapsed, setElapsed] = useState(0);
+  const [noPreviewFlash, setNoPreviewFlash] = useState(false);
   const howlRef = useRef<Howl | null>(null);
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
-  const disabled = !previewUrl;
+  const songIdRef = useRef<string>('');
+
+  // Track song identity to detect changes
+  const songIdentity = `${previewUrl ?? ''}|${title}`;
 
   const cleanup = useCallback(() => {
     if (rafRef.current) {
@@ -40,15 +50,31 @@ export default function AudioPlayer({
       howlRef.current.unload();
       howlRef.current = null;
     }
-    setIsPlaying(false);
     setProgress(0);
     setElapsed(0);
   }, []);
 
-  // Cleanup on unmount or URL change
+  // Reset to idle when song changes
+  useEffect(() => {
+    if (songIdRef.current && songIdRef.current !== songIdentity) {
+      cleanup();
+      setState('idle');
+      setNoPreviewFlash(false);
+    }
+    songIdRef.current = songIdentity;
+  }, [songIdentity, cleanup]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return cleanup;
-  }, [previewUrl, cleanup]);
+  }, [cleanup]);
+
+  const transitionToReady = useCallback(() => {
+    cleanup();
+    setState('ready');
+    onClipEnd?.();
+    onSongReady?.();
+  }, [cleanup, onClipEnd, onSongReady]);
 
   const updateProgress = useCallback(() => {
     const now = Date.now();
@@ -60,195 +86,299 @@ export default function AudioPlayer({
     setElapsed(elapsedSec);
 
     if (pct >= 1) {
-      // Clip duration reached
       howlRef.current?.stop();
-      setIsPlaying(false);
-      setProgress(1);
-      onClipEnd?.();
+      transitionToReady();
       return;
     }
 
     rafRef.current = requestAnimationFrame(updateProgress);
-  }, [clipDuration, onClipEnd]);
+  }, [clipDuration, transitionToReady]);
 
-  const togglePlay = useCallback(() => {
-    if (disabled) return;
+  const handleTap = useCallback(() => {
+    if (state === 'ready') return;
 
-    if (isPlaying) {
-      howlRef.current?.pause();
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      setIsPlaying(false);
+    // Demo mode: no preview URL
+    if (!previewUrl) {
+      if (state === 'idle') {
+        setNoPreviewFlash(true);
+        setTimeout(() => {
+          setNoPreviewFlash(false);
+          transitionToReady();
+        }, 800);
+      }
       return;
     }
 
-    // If there's an existing howl that was paused, resume
-    if (howlRef.current && progress > 0 && progress < 1) {
-      howlRef.current.play();
-      startTimeRef.current = Date.now() - elapsed * 1000;
-      rafRef.current = requestAnimationFrame(updateProgress);
-      setIsPlaying(true);
+    if (state === 'playing') {
+      // Stop early -> transition to ready
+      howlRef.current?.stop();
+      transitionToReady();
       return;
     }
 
-    // Create new howl
+    // idle -> playing
     cleanup();
 
     const howl = new Howl({
-      src: [previewUrl!],
+      src: [previewUrl],
       html5: true,
       volume: 0.8,
       onend: () => {
-        setIsPlaying(false);
-        if (rafRef.current) cancelAnimationFrame(rafRef.current);
-        onClipEnd?.();
+        transitionToReady();
       },
       onloaderror: () => {
-        setIsPlaying(false);
+        setState('idle');
       },
       onplayerror: () => {
-        setIsPlaying(false);
+        setState('idle');
       },
     });
 
     howlRef.current = howl;
     howl.play();
     startTimeRef.current = Date.now();
-    setIsPlaying(true);
+    setState('playing');
     rafRef.current = requestAnimationFrame(updateProgress);
-  }, [disabled, isPlaying, progress, elapsed, previewUrl, cleanup, updateProgress, onClipEnd]);
+  }, [state, previewUrl, cleanup, transitionToReady, updateProgress]);
 
   // SVG circle values
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
+  const timeRemaining = Math.max(0, clipDuration - elapsed);
+
   return (
     <div className="flex flex-col items-center gap-4">
-      {/* Player disc */}
-      <div className="relative" style={{ width: 160, height: 160 }}>
-        {/* Blurred album art background */}
-        <div
-          className="absolute -inset-4 rounded-full bg-cover bg-center opacity-40"
-          style={{
-            backgroundImage: `url(${albumArtUrl})`,
-            filter: 'blur(20px)',
-          }}
-        />
-
-        {/* Progress ring */}
-        <svg
-          className="absolute inset-0"
-          width="160"
-          height="160"
-          viewBox="0 0 120 120"
-        >
-          {/* Track ring */}
-          <circle
-            cx="60"
-            cy="60"
-            r={radius}
-            fill="none"
-            stroke="rgba(255,255,255,0.08)"
-            strokeWidth="4"
-          />
-          {/* Progress ring */}
-          <motion.circle
-            cx="60"
-            cy="60"
-            r={radius}
-            fill="none"
-            stroke="#00d4aa"
-            strokeWidth="4"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={strokeDashoffset}
-            transform="rotate(-90 60 60)"
-            style={{
-              filter: 'drop-shadow(0 0 4px rgba(0, 212, 170, 0.5))',
-            }}
-          />
-        </svg>
-
-        {/* Album art center */}
-        <div className="absolute inset-3 overflow-hidden rounded-full">
-          <div
-            className="h-full w-full bg-cover bg-center"
-            style={{ backgroundImage: `url(${albumArtUrl})` }}
-          />
-          {/* Dark overlay when not revealed */}
-          {!revealed && (
-            <div className="absolute inset-0 bg-black/30" />
-          )}
-        </div>
-
-        {/* Play/Pause button */}
-        <motion.button
-          className="absolute inset-0 flex items-center justify-center rounded-full"
-          onClick={togglePlay}
-          disabled={disabled}
-          whileHover={!disabled ? { scale: 1.03 } : undefined}
-          whileTap={!disabled ? { scale: 0.97 } : undefined}
-          style={{ cursor: disabled ? 'not-allowed' : 'pointer' }}
-        >
+      <AnimatePresence mode="wait">
+        {state === 'ready' ? (
+          /* ── Ready state: morphed card ──────────────────── */
           <motion.div
-            className="flex items-center justify-center rounded-full"
+            key="card"
+            layoutId="player-shape"
+            className="flex flex-col items-center justify-center gap-2"
             style={{
-              width: 48,
-              height: 48,
-              background: disabled
-                ? 'rgba(255,255,255,0.1)'
-                : 'rgba(0,0,0,0.6)',
-              backdropFilter: 'blur(8px)',
-              border: disabled
-                ? '1.5px solid rgba(255,255,255,0.1)'
-                : '1.5px solid rgba(255,255,255,0.2)',
+              width: 180,
+              height: 100,
+              borderRadius: 16,
+              background: `linear-gradient(135deg, ${teamColor}18, ${teamColor}08)`,
+              border: `2px solid ${teamColor}50`,
+              backdropFilter: 'blur(12px)',
+              cursor: 'grab',
             }}
-            whileHover={!disabled ? { background: 'rgba(0,0,0,0.7)' } : undefined}
+            initial={{ borderRadius: 80, width: 160, height: 160 }}
+            animate={{ borderRadius: 16, width: 180, height: 100 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
-            {disabled ? (
-              /* Disabled / no preview icon */
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <line x1="4" y1="4" x2="20" y2="20" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" />
-                <line x1="20" y1="4" x2="4" y2="20" stroke="rgba(255,255,255,0.3)" strokeWidth="2" strokeLinecap="round" />
-              </svg>
-            ) : isPlaying ? (
-              /* Pause icon */
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
-              </svg>
-            ) : (
-              /* Play icon */
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="white">
-                <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
-              </svg>
-            )}
+            <motion.span
+              className="text-3xl font-bold"
+              style={{ color: teamColor }}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.15 }}
+            >
+              ?
+            </motion.span>
+            <motion.span
+              className="text-xs font-medium"
+              style={{ color: `${teamColor}aa` }}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+            >
+              Drag to place
+            </motion.span>
           </motion.div>
-        </motion.button>
-
-        {/* Pulsing ring while playing */}
-        <AnimatePresence>
-          {isPlaying && (
-            <motion.div
-              className="absolute inset-0 rounded-full"
+        ) : (
+          /* ── Idle / Playing state: circular player ──────── */
+          <motion.div
+            key="circle"
+            layoutId="player-shape"
+            className="relative"
+            style={{ width: 160, height: 160 }}
+            initial={{ borderRadius: 80 }}
+            animate={{ borderRadius: 80 }}
+          >
+            {/* Blurred album art background */}
+            <div
+              className="absolute -inset-4 rounded-full bg-cover bg-center"
               style={{
-                border: '2px solid rgba(0, 212, 170, 0.3)',
+                backgroundImage: `url(${albumArtUrl})`,
+                filter: 'blur(20px)',
+                opacity: state === 'playing' ? 0.5 : 0.3,
               }}
-              initial={{ scale: 1, opacity: 0.6 }}
-              animate={{ scale: [1, 1.08, 1], opacity: [0.6, 0, 0.6] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-              exit={{ opacity: 0, scale: 1.1 }}
             />
-          )}
-        </AnimatePresence>
-      </div>
 
-      {/* Time display */}
-      <div className="text-center">
-        <span className="text-xs font-mono text-white/40">
-          {Math.floor(elapsed)}s / {clipDuration}s
-        </span>
-      </div>
+            {/* Progress ring */}
+            <svg
+              className="absolute inset-0"
+              width="160"
+              height="160"
+              viewBox="0 0 120 120"
+            >
+              {/* Track ring */}
+              <circle
+                cx="60"
+                cy="60"
+                r={radius}
+                fill="none"
+                stroke="rgba(255,255,255,0.08)"
+                strokeWidth="4"
+              />
+              {/* Progress arc */}
+              {state === 'playing' && (
+                <motion.circle
+                  cx="60"
+                  cy="60"
+                  r={radius}
+                  fill="none"
+                  stroke={teamColor}
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  transform="rotate(-90 60 60)"
+                  style={{
+                    filter: `drop-shadow(0 0 4px ${teamColor}80)`,
+                  }}
+                />
+              )}
+            </svg>
+
+            {/* Album art center */}
+            <div className="absolute inset-3 overflow-hidden rounded-full">
+              <div
+                className="h-full w-full bg-cover bg-center"
+                style={{
+                  backgroundImage: `url(${albumArtUrl})`,
+                  filter: state === 'playing' ? 'blur(2px)' : 'blur(6px)',
+                  transition: 'filter 0.4s ease',
+                }}
+              />
+              {/* Dark overlay */}
+              {!revealed && (
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      state === 'playing'
+                        ? 'rgba(0,0,0,0.35)'
+                        : 'rgba(0,0,0,0.55)',
+                    transition: 'background 0.4s ease',
+                  }}
+                />
+              )}
+            </div>
+
+            {/* Tap target */}
+            <motion.button
+              className="absolute inset-0 flex flex-col items-center justify-center rounded-full"
+              onClick={handleTap}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              style={{ cursor: 'pointer' }}
+            >
+              <motion.div
+                className="flex items-center justify-center rounded-full"
+                style={{
+                  width: 56,
+                  height: 56,
+                  background: 'rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(8px)',
+                  border: '1.5px solid rgba(255,255,255,0.2)',
+                }}
+              >
+                {noPreviewFlash ? (
+                  /* No preview flash */
+                  <motion.span
+                    className="text-xs font-medium text-white/60"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    No preview
+                  </motion.span>
+                ) : state === 'playing' ? (
+                  /* Pause icon */
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
+                  </svg>
+                ) : (
+                  /* Play / music note icon */
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+                    <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
+                  </svg>
+                )}
+              </motion.div>
+
+              {/* "Tap to listen" label below button (idle only) */}
+              <AnimatePresence>
+                {state === 'idle' && !noPreviewFlash && (
+                  <motion.span
+                    className="mt-2 text-xs font-medium text-white/50"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -4 }}
+                  >
+                    Tap to listen
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+
+            {/* Pulsing ring — idle: gentle invite; playing: beat pulse */}
+            <AnimatePresence>
+              {state === 'idle' && !noPreviewFlash && (
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{ border: '2px solid rgba(255,255,255,0.15)' }}
+                  initial={{ scale: 1, opacity: 0.4 }}
+                  animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.1, 0.4] }}
+                  transition={{
+                    duration: 2.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                />
+              )}
+              {state === 'playing' && (
+                <motion.div
+                  className="absolute inset-0 rounded-full"
+                  style={{ border: `2px solid ${teamColor}4d` }}
+                  initial={{ scale: 1, opacity: 0.6 }}
+                  animate={{
+                    scale: [1, 1.08, 1],
+                    opacity: [0.6, 0, 0.6],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                />
+              )}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Time remaining (playing only) */}
+      <AnimatePresence>
+        {state === 'playing' && (
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <span className="text-xs font-mono text-white/40">
+              {Math.ceil(timeRemaining)}s remaining
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Song info (only when revealed) */}
       <AnimatePresence>
@@ -265,11 +395,6 @@ export default function AudioPlayer({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Disabled message */}
-      {disabled && (
-        <p className="text-xs text-white/30">No preview available</p>
-      )}
     </div>
   );
 }

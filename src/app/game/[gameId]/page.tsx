@@ -22,7 +22,9 @@ import type { Team } from '@/lib/game/types';
 /* ── Phase type for local UI state ─────────────────────── */
 type Phase = 'playing' | 'challenge-window' | 'pass-device' | 'game-over';
 
-/* ── No hardcoded challenge window — uses settings ─────── */
+/* ── Team color helper ─────────────────────────────────── */
+const getTeamColor = (team: Team) =>
+  team === 'A' ? '#00d4aa' : '#8b5cf6';
 
 export default function GamePage() {
   const router = useRouter();
@@ -58,6 +60,7 @@ export default function GamePage() {
   /* ── Local UI state ───────────────────────────────────── */
   const [phase, setPhase] = useState<Phase>('playing');
   const [revealed, setRevealed] = useState(false);
+  const [songReady, setSongReady] = useState(false);
   // Track the team whose turn we're showing (to support pass-device correctly)
   const activeTeamRef = useRef<Team>(currentTeam);
 
@@ -82,6 +85,7 @@ export default function GamePage() {
     // Auto-skip on turn timeout (no token cost — just advance turn)
     nextTurn();
     audio.stop();
+    setSongReady(false);
     setPhase('pass-device');
   }, [nextTurn, audio]);
 
@@ -118,14 +122,19 @@ export default function GamePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  /* ── Stop audio when song changes ─────────────────────── */
+  /* ── Stop audio & reset when song changes ────────────── */
   useEffect(() => {
     audio.stop();
     setRevealed(false);
+    setSongReady(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentSong?.spotifyId]);
 
   /* ── Handlers ─────────────────────────────────────────── */
+  const handleSongReady = useCallback(() => {
+    setSongReady(true);
+  }, []);
+
   const handlePlaceSong = useCallback(
     (position: number) => {
       if (phase !== 'playing') return;
@@ -133,6 +142,7 @@ export default function GamePage() {
       turnTimer.stopTimer();
       audio.stop();
       placeSong(position);
+      setSongReady(false);
 
       // Enter challenge window
       setPhase('challenge-window');
@@ -141,7 +151,7 @@ export default function GamePage() {
         challengeTimer.startTimer(cwSeconds);
       }
     },
-    [phase, placeSong, turnTimer, challengeTimer, audio]
+    [phase, placeSong, turnTimer, challengeTimer, audio, settings.challengeWindowSeconds]
   );
 
   const handleChallenge = useCallback(() => {
@@ -174,6 +184,7 @@ export default function GamePage() {
     turnTimer.stopTimer();
     audio.stop();
     skipSong();
+    setSongReady(false);
 
     // Skip goes straight to pass-device (turn already advanced by skipSong)
     setPhase('pass-device');
@@ -182,6 +193,7 @@ export default function GamePage() {
   const handlePassDeviceReady = useCallback(() => {
     activeTeamRef.current = currentTeam;
     setRevealed(false);
+    setSongReady(false);
     setPhase('playing');
   }, [currentTeam]);
 
@@ -232,7 +244,7 @@ export default function GamePage() {
         />
       </div>
 
-      {/* ── Middle section: Audio player ─────────────────── */}
+      {/* ── Middle section: Audio player (play button / song card) */}
       <div className="flex flex-col items-center px-4 py-6">
         <AudioPlayer
           previewUrl={currentSong?.previewUrl ?? null}
@@ -241,6 +253,8 @@ export default function GamePage() {
           artist={currentSong?.artist ?? 'Unknown'}
           revealed={revealed}
           clipDuration={settings.clipDurationSeconds}
+          onSongReady={handleSongReady}
+          teamColor={getTeamColor(currentTeam)}
         />
       </div>
 
@@ -252,6 +266,7 @@ export default function GamePage() {
           currentSong={phase === 'playing' ? currentSong : null}
           activeTeam={currentTeam}
           onPlaceSong={handlePlaceSong}
+          songReady={songReady}
         />
       </div>
 

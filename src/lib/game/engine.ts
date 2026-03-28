@@ -234,22 +234,26 @@ export function initializeGame(
   songs: Song[],
   settings: GameSettings
 ): GameState {
-  // Place the first song as a seed on both timelines (revealed, with year shown)
-  const seedSong = songs[0];
-  const seedPlaced: PlacedSong = {
-    ...seedSong,
+  // Place different seed songs on each timeline (revealed, with year shown)
+  const seedA: PlacedSong = {
+    ...songs[0],
+    placedAtIndex: 0,
+    placedCorrectly: true,
+  };
+  const seedB: PlacedSong = {
+    ...songs[1],
     placedAtIndex: 0,
     placedCorrectly: true,
   };
 
   return {
     songPool: songs,
-    currentSongIndex: 1, // Start from second song since first is the seed
+    currentSongIndex: 2, // Start from third song since first two are seeds
     currentTeam: "A",
-    teamATimeline: [seedPlaced],
-    teamBTimeline: [seedPlaced],
-    teamATokens: 0,
-    teamBTokens: 0,
+    teamATimeline: [seedA],
+    teamBTimeline: [seedB],
+    teamATokens: 2,
+    teamBTokens: 2,
     teamAScore: 0,
     teamBScore: 0,
     cardsToWin: settings.cardsToWin,

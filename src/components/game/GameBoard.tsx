@@ -24,6 +24,7 @@ export interface GameBoardProps {
   currentSong: Song | null;
   activeTeam: Team;
   onPlaceSong: (position: number) => void;
+  songReady: boolean;
 }
 
 /* ── Team helpers ───────────────────────────────────────── */
@@ -147,6 +148,7 @@ export default function GameBoard({
   currentSong,
   activeTeam,
   onPlaceSong,
+  songReady,
 }: GameBoardProps) {
   const [isDragActive, setIsDragActive] = useState(false);
 
@@ -186,6 +188,8 @@ export default function GameBoard({
     setIsDragActive(false);
   }, []);
 
+  const showDraggableCard = songReady && currentSong;
+
   return (
     <DndContext
       sensors={sensors}
@@ -194,11 +198,11 @@ export default function GameBoard({
       onDragCancel={handleDragCancel}
     >
       <div className="flex flex-col gap-4 w-full">
-        {/* Opponent timeline (top, compact, read-only) */}
-        <div className="opacity-60">
+        {/* 1. Opponent timeline (top, compact, greyed out, locked) */}
+        <div>
           <h3
             className="text-[10px] font-semibold uppercase tracking-wider mb-1"
-            style={{ color: teamColor(opponentTeam), opacity: 0.7 }}
+            style={{ color: teamColor(opponentTeam), opacity: 0.5 }}
           >
             {opponentTeam === 'A' ? 'Team A' : 'Team B'} Timeline
             <span className="ml-2 text-white/30">
@@ -216,9 +220,14 @@ export default function GameBoard({
           />
         </div>
 
-        {/* Draggable current song card */}
-        {currentSong && (
-          <div className="flex flex-col items-center gap-2">
+        {/* 2. Draggable current song card (only when songReady) */}
+        {showDraggableCard && (
+          <motion.div
+            className="flex flex-col items-center gap-2 py-2"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+          >
             <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
               Current Song
             </p>
@@ -226,10 +235,10 @@ export default function GameBoard({
             <p className="text-xs text-white/30">
               Drag onto the timeline below
             </p>
-          </div>
+          </motion.div>
         )}
 
-        {/* Active team timeline (bottom, large, with drop zones) */}
+        {/* 3. Active team timeline (bottom, full size, with drop zones) */}
         <div>
           <h3
             className="text-xs font-semibold uppercase tracking-wider mb-2"
@@ -241,7 +250,7 @@ export default function GameBoard({
           <Timeline
             timeline={activeTimeline}
             team={activeTeam}
-            isActiveTeam={!!currentSong}
+            isActiveTeam={!!showDraggableCard}
             onPlaceSong={onPlaceSong}
             isDragActive={isDragActive}
           />
