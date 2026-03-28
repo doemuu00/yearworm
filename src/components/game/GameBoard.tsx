@@ -25,6 +25,7 @@ export interface GameBoardProps {
   activeTeam: Team;
   onPlaceSong: (position: number) => void;
   songReady: boolean;
+  audioPlayer?: React.ReactNode;
 }
 
 /* ── Team helpers ───────────────────────────────────────── */
@@ -149,6 +150,7 @@ export default function GameBoard({
   activeTeam,
   onPlaceSong,
   songReady,
+  audioPlayer,
 }: GameBoardProps) {
   const [isDragActive, setIsDragActive] = useState(false);
 
@@ -220,23 +222,20 @@ export default function GameBoard({
           />
         </div>
 
-        {/* 2. Draggable current song card (only when songReady) */}
-        {showDraggableCard && (
-          <motion.div
-            className="flex flex-col items-center gap-2 py-2"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-          >
-            <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
-              Current Song
-            </p>
-            <DraggableSongCard song={currentSong} team={activeTeam} />
-            <p className="text-xs text-white/30">
-              Drag onto the timeline below
-            </p>
-          </motion.div>
-        )}
+        {/* 2. Audio player / Draggable card (between timelines) */}
+        <div className="flex justify-center py-3">
+          {showDraggableCard ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+            >
+              <DraggableSongCard song={currentSong} team={activeTeam} />
+            </motion.div>
+          ) : (
+            audioPlayer
+          )}
+        </div>
 
         {/* 3. Active team timeline (bottom, full size, with drop zones) */}
         <div>

@@ -152,43 +152,8 @@ export default function AudioPlayer({
     <div className="flex flex-col items-center gap-4">
       <AnimatePresence mode="wait">
         {state === 'ready' ? (
-          /* ── Ready state: morphed card ──────────────────── */
-          <motion.div
-            key="card"
-            layoutId="player-shape"
-            className="flex flex-col items-center justify-center gap-2"
-            style={{
-              width: 180,
-              height: 100,
-              borderRadius: 16,
-              background: `linear-gradient(135deg, ${teamColor}18, ${teamColor}08)`,
-              border: `2px solid ${teamColor}50`,
-              backdropFilter: 'blur(12px)',
-              cursor: 'grab',
-            }}
-            initial={{ borderRadius: 80, width: 160, height: 160 }}
-            animate={{ borderRadius: 16, width: 180, height: 100 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            <motion.span
-              className="text-3xl font-bold"
-              style={{ color: teamColor }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.15 }}
-            >
-              ?
-            </motion.span>
-            <motion.span
-              className="text-xs font-medium"
-              style={{ color: `${teamColor}aa` }}
-              initial={{ opacity: 0, y: 4 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25 }}
-            >
-              Drag to place
-            </motion.span>
-          </motion.div>
+          /* ── Ready state: hidden — GameBoard shows the draggable card */
+          null
         ) : (
           /* ── Idle / Playing state: circular player ──────── */
           <motion.div

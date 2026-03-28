@@ -244,21 +244,7 @@ export default function GamePage() {
         />
       </div>
 
-      {/* ── Middle section: Audio player (play button / song card) */}
-      <div className="flex flex-col items-center px-4 py-6">
-        <AudioPlayer
-          previewUrl={currentSong?.previewUrl ?? null}
-          albumArtUrl={currentSong?.albumArtUrl ?? '/placeholder-album.png'}
-          title={currentSong?.title ?? 'Unknown'}
-          artist={currentSong?.artist ?? 'Unknown'}
-          revealed={revealed}
-          clipDuration={settings.clipDurationSeconds}
-          onSongReady={handleSongReady}
-          teamColor={getTeamColor(currentTeam)}
-        />
-      </div>
-
-      {/* ── Bottom section: GameBoard ────────────────────── */}
+      {/* ── GameBoard with AudioPlayer between timelines ── */}
       <div className="flex-1 px-4 pb-24">
         <GameBoard
           activeTimeline={currentTeamTimeline}
@@ -267,6 +253,18 @@ export default function GamePage() {
           activeTeam={currentTeam}
           onPlaceSong={handlePlaceSong}
           songReady={songReady}
+          audioPlayer={
+            <AudioPlayer
+              previewUrl={currentSong?.previewUrl ?? null}
+              albumArtUrl={currentSong?.albumArtUrl ?? ''}
+              title={currentSong?.title ?? 'Unknown'}
+              artist={currentSong?.artist ?? 'Unknown'}
+              revealed={revealed}
+              clipDuration={settings.clipDurationSeconds}
+              onSongReady={handleSongReady}
+              teamColor={getTeamColor(currentTeam)}
+            />
+          }
         />
       </div>
 

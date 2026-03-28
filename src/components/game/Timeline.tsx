@@ -7,8 +7,8 @@ import type { PlacedSong, Team } from '@/lib/game/types';
 
 /* ── Constants ─────────────────────────────────────────── */
 
-const YEAR_MIN = 1920;
-const YEAR_MAX = 2026;
+const YEAR_MIN = 1915;
+const YEAR_MAX = 2030;
 const YEAR_RANGE = YEAR_MAX - YEAR_MIN;
 
 // Decade markers to show on the axis
