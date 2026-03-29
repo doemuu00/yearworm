@@ -9,7 +9,7 @@ interface TokenDisplayProps {
   maxTokens?: number;
 }
 
-export default function TokenDisplay({ tokens, team, maxTokens = 3 }: TokenDisplayProps) {
+export default function TokenDisplay({ tokens, team, maxTokens = 5 }: TokenDisplayProps) {
   return (
     <div className="flex items-center gap-1">
       {/* Token indicators as material symbols */}

@@ -8,10 +8,12 @@ import {
   DragOverlay,
   PointerSensor,
   TouchSensor,
+  closestCenter,
   useSensor,
   useSensors,
   type DragEndEvent,
   type DragStartEvent,
+  type Modifier,
 } from '@dnd-kit/core';
 
 import { useGame } from '@/hooks/useGame';
@@ -86,7 +88,7 @@ export default function GamePage() {
   /* ── Audio ────────────────────────────────────────────── */
   const audio = useAudio();
 
-  /* ── DnD sensors ─────────────────────────────────────── */
+  /* ── DnD sensors & modifiers ──────────────────────────── */
   const pointerSensor = useSensor(PointerSensor, {
     activationConstraint: { distance: 8 },
   });
@@ -94,6 +96,27 @@ export default function GamePage() {
     activationConstraint: { distance: 8 },
   });
   const sensors = useSensors(pointerSensor, touchSensor);
+
+  // Magnetic snap: when over a drop zone, lock the overlay's horizontal position
+  // to the center of that drop zone for a "magnetic lock" feel.
+  const snapToDropZone: Modifier = useCallback(
+    ({ transform, over, draggingNodeRect }) => {
+      if (!over || !draggingNodeRect) return transform;
+      const overRect = over.rect;
+      if (!overRect) return transform;
+      // Snap vertically to the center of the drop zone
+      const overCenterY = overRect.top + overRect.height / 2;
+      const dragCenterY = draggingNodeRect.top + draggingNodeRect.height / 2;
+      const snapY = overCenterY - dragCenterY;
+      // Snap horizontally to the center of the drop zone
+      const overCenterX = overRect.left + overRect.width / 2;
+      const dragCenterX = draggingNodeRect.left + draggingNodeRect.width / 2;
+      const snapX = overCenterX - dragCenterX;
+      return { ...transform, x: snapX, y: snapY };
+    },
+    [],
+  );
+  const modifiers = [snapToDropZone];
 
   /* ── Turn timer ───────────────────────────────────────── */
   const handleTurnTimeout = useCallback(() => {
@@ -290,6 +313,8 @@ export default function GamePage() {
       {/* ── Main 3-column grid layout (wrapped in DndContext) ── */}
       <DndContext
         sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={modifiers}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}

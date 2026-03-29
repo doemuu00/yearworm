@@ -50,16 +50,18 @@ export function TeamPanel({
       }}
     >
       <h2 className={labelClass}>{label}</h2>
-      <motion.span
-        key={score}
-        className="text-lg font-black font-headline text-on-surface leading-none"
-        initial={{ scale: 1.3, opacity: 0.5 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      >
-        {score}
-      </motion.span>
-      <span className={`text-sm font-bold italic ${targetColor}`}>/{cardsToWin}</span>
+      <span className="font-headline font-black text-sm leading-none flex items-baseline gap-0">
+        <motion.span
+          key={score}
+          className={scoreColor}
+          initial={{ scale: 1.3, opacity: 0.5 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        >
+          {score}
+        </motion.span>
+        <span className={targetColor}>/{cardsToWin}</span>
+      </span>
       <TokenDisplay tokens={tokens} team={team} />
     </div>
   );

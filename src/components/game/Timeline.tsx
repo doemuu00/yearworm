@@ -116,7 +116,7 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
       }}
     >
       <div className={`glass-panel ${compact ? 'p-3' : 'p-5'} rounded-xl shadow-lg relative overflow-hidden border ${borderColor}`}>
-        <div className="flex justify-between items-start mb-2">
+        <div className={`flex justify-between items-start mb-2 ${mirror ? 'flex-row-reverse' : ''}`}>
           <span className={`px-3 py-1.5 ${badgeBg} ${badgeText} font-headline font-black text-sm rounded-lg ${badgeShadow} tracking-tight`}>
             {song.releaseYear}
           </span>
@@ -129,11 +129,11 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
             </span>
           )}
         </div>
-        <h3 className={`font-headline font-bold text-on-surface leading-tight ${compact ? 'text-sm' : 'text-lg'} mb-0.5 truncate`}>
+        <h3 className={`font-headline font-bold text-on-surface leading-tight ${compact ? 'text-sm' : 'text-lg'} mb-0.5 truncate ${mirror ? 'text-right' : ''}`}>
           {song.title}
         </h3>
         {!compact && (
-          <p className="text-sm text-on-surface-variant font-medium truncate">
+          <p className={`text-sm text-on-surface-variant font-medium truncate ${mirror ? 'text-right' : ''}`}>
             {song.artist}
           </p>
         )}
