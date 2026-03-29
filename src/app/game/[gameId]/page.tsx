@@ -198,8 +198,7 @@ export default function GamePage() {
       });
       setIsDragActive(false);
       audio.stop();
-      setRevealed(true);
-      setPhase('showing-result');
+      setPhase('guess-commit');
     },
     [challengePlacement, audio, lastPlacedSong, lastPlacedTeam]
   );
@@ -232,8 +231,7 @@ export default function GamePage() {
         wasChallenged: false,
       });
       audio.stop();
-      setRevealed(true);
-      setPhase('showing-result');
+      setPhase('guess-commit');
     } else {
       setPhase('pass-device');
       audio.stop();
@@ -243,12 +241,14 @@ export default function GamePage() {
   /* ── Guess flow handlers ─────────────────────────────── */
   const handleGuessCommitYes = useCallback(() => {
     commitGuess();
-    setPhase('guess-verify');
+    setRevealed(true);
+    setPhase('showing-result');
   }, [commitGuess]);
 
   const handleGuessCommitNo = useCallback(() => {
     resetGuess();
-    setPhase('pass-device');
+    setRevealed(true);
+    setPhase('showing-result');
   }, [resetGuess]);
 
   const handleSkip = useCallback(() => {
@@ -263,10 +263,13 @@ export default function GamePage() {
   }, [currentTeamTokens, settings.tokensToSkip, turnTimer, audio, skipSong]);
 
   const handleResultDismiss = useCallback(() => {
-    setPlacementResult(null);
-    // After seeing the result, ask about the guess
-    setPhase('guess-commit');
-  }, []);
+    if (guessCommitted) {
+      setPhase('guess-verify');
+    } else {
+      setPlacementResult(null);
+      setPhase('pass-device');
+    }
+  }, [guessCommitted]);
 
   const handleGuessVerifyYes = useCallback(() => {
     confirmGuess();
