@@ -136,15 +136,12 @@ export default function LobbyPage() {
                   {labels.map((label, i) => {
                     const segmentStep = i + 1;
                     const isComplete = displayStep >= segmentStep;
-                    const opacity = isComplete
-                      ? segmentStep === totalSteps ? 'bg-primary' : `bg-primary/${Math.round(40 + (60 * segmentStep / totalSteps))}`
-                      : 'bg-transparent';
 
                     return (
                       <div
                         key={label}
-                        className={`h-full rounded-full transition-all duration-500 ${opacity}`}
-                        style={{ width: `${100 / totalSteps}%` }}
+                        className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-primary' : 'bg-transparent'}`}
+                        style={{ width: `${100 / totalSteps}%`, opacity: isComplete ? (segmentStep === totalSteps ? 1 : 0.6) : undefined }}
                       />
                     );
                   })}
