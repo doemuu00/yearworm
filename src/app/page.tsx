@@ -109,7 +109,7 @@ export default function Home() {
           {/* Quick Play — col-span-8 */}
           <div
             onClick={handleQuickPlay}
-            className="md:col-span-8 group relative overflow-hidden rounded-lg p-8 glass-panel flex flex-col justify-between h-[320px] shadow-[0_12px_32px_rgba(40,223,181,0.08)] shadow-primary-glow cursor-pointer active:scale-[0.98] transition-all"
+            className="md:col-span-8 group relative overflow-hidden rounded-lg p-8 glass-panel flex flex-col justify-between h-[320px] shadow-[0_12px_32px_rgba(40,223,181,0.08)] cursor-pointer active:scale-[0.98] transition-all"
           >
             <div className="absolute top-0 right-0 p-8 text-primary/10 group-hover:text-primary/20 transition-colors">
               <span className="material-symbols-outlined text-[160px] leading-none select-none">
@@ -118,7 +118,7 @@ export default function Home() {
             </div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-primary text-4xl mb-4">bolt</span>
-              <h2 className="font-display text-4xl font-bold text-on-surface mb-2">Quick Play</h2>
+              <h2 className="font-headline text-4xl font-bold text-on-surface mb-2">Quick Play</h2>
               <p className="text-on-surface-variant max-w-xs">
                 Jump into a random era and start guessing songs immediately.
               </p>
@@ -137,13 +137,13 @@ export default function Home() {
           {/* Create Game — col-span-4 */}
           <div
             onClick={handleCreateGame}
-            className="md:col-span-4 glass-card rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer group"
+            className="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer group"
           >
             <div>
               <span className="material-symbols-outlined text-secondary text-3xl mb-4">
                 add_circle
               </span>
-              <h3 className="font-display text-2xl font-bold text-on-surface mb-1">Create</h3>
+              <h3 className="font-headline text-2xl font-bold text-on-surface mb-1">Create</h3>
               <p className="text-sm text-on-surface-variant">
                 Host a private session with friends and custom genres.
               </p>
@@ -160,7 +160,7 @@ export default function Home() {
             onClick={() => {
               if (!showJoin) setShowJoin(true);
             }}
-            className="md:col-span-4 glass-card rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-tertiary/30 transition-colors cursor-pointer group"
+            className="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-tertiary/30 transition-colors cursor-pointer group"
           >
             {!showJoin ? (
               <>
@@ -168,7 +168,7 @@ export default function Home() {
                   <span className="material-symbols-outlined text-tertiary text-3xl mb-4">
                     group
                   </span>
-                  <h3 className="font-display text-2xl font-bold text-on-surface mb-1">Join</h3>
+                  <h3 className="font-headline text-2xl font-bold text-on-surface mb-1">Join</h3>
                   <p className="text-sm text-on-surface-variant">
                     Enter a lobby code to play with your crew.
                   </p>
@@ -231,7 +231,7 @@ export default function Home() {
           </div>
 
           {/* Stats — col-span-8 */}
-          <div className="md:col-span-8 glass-card rounded-lg p-8 flex items-center gap-8 border border-outline-variant/10">
+          <div className="md:col-span-8 glass-panel rounded-lg p-8 flex items-center gap-8 border border-outline-variant/10">
             {/* Waveform placeholder */}
             <div className="hidden sm:flex w-24 h-24 rounded-full overflow-hidden flex-shrink-0 bg-surface-container-highest items-center justify-center">
               <span className="material-symbols-outlined text-primary/40 text-5xl">
