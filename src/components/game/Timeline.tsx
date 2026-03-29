@@ -17,6 +17,12 @@ const DECADES = [1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 202
 const MIN_CENTER_GAP_NORMAL = 15;
 const MIN_CENTER_GAP_COMPACT = 11;
 
+/** Layout offsets (px) */
+const AXIS_POS = { normal: 40, compact: 30 };
+const CARD_OFFSET = { normal: 58, compact: 44 };
+const DROP_ZONE_OFFSET = { normal: 46, compact: 36 };
+const CONNECTOR_STUB = 14; // px horizontal stub from axis toward card
+
 /* ── Props ──────────────────────────────────────────────── */
 
 export interface TimelineProps {
@@ -38,7 +44,7 @@ function yearToPercent(year: number): number {
 /**
  * Resolve card positions to prevent overlap.
  * Takes ideal positions (screen order: top to bottom) and enforces a minimum gap.
- * Two-pass: top-down push, then bottom-up push, then center the result.
+ * Two-pass: top-down push, then bottom-up push.
  */
 function resolvePositions(idealPositions: number[], minGap: number): number[] {
   if (idealPositions.length === 0) return [];
@@ -56,7 +62,6 @@ function resolvePositions(idealPositions: number[], minGap: number): number[] {
   }
 
   // Pass 2: bottom-up — push cards up if they overflow past 100%
-  // Clamp the last card to at most 96% (leave room for the bottom edge)
   const maxBottom = 96;
   if (adjusted[n - 1] > maxBottom) {
     adjusted[n - 1] = maxBottom;
@@ -71,7 +76,6 @@ function resolvePositions(idealPositions: number[], minGap: number): number[] {
   // Clamp top card to at least 4%
   if (adjusted[0] < 4) {
     adjusted[0] = 4;
-    // Re-push down after clamping top
     for (let i = 1; i < n; i++) {
       const minPos = adjusted[i - 1] + minGap;
       if (adjusted[i] < minPos) {
@@ -83,7 +87,7 @@ function resolvePositions(idealPositions: number[], minGap: number): number[] {
   return adjusted;
 }
 
-/* ── Drop Zone (Stitch style) ────────────────────────── */
+/* ── Drop Zone ───────────────────────────────────────── */
 
 interface DropZoneProps {
   id: string;
@@ -97,13 +101,13 @@ interface DropZoneProps {
 function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id });
   const isPrimary = team === 'A';
-  const mirror = !isPrimary; // Team B axis on right
+  const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/20' : 'border-secondary/20';
   const borderColorOver = isPrimary ? 'border-primary' : 'border-secondary';
   const textColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
   const bgColor = isPrimary ? 'bg-primary/[0.02]' : 'bg-secondary/[0.02]';
   const bgColorOver = isPrimary ? 'bg-primary/15' : 'bg-secondary/15';
-  const axisOffset = compact ? 28 : 36;
+  const axisOffset = compact ? DROP_ZONE_OFFSET.compact : DROP_ZONE_OFFSET.normal;
 
   return (
     <div
@@ -134,61 +138,101 @@ function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }
   );
 }
 
-/* ── Connecting Line (card displaced from true year) ─── */
+/* ── Elbow Connector (axis → card with 90° corners) ──── */
 
-interface ConnectingLineProps {
+interface ConnectorProps {
   idealPercent: number;
   adjustedPercent: number;
   team: Team;
   compact: boolean;
 }
 
-function ConnectingLine({ idealPercent, adjustedPercent, team, compact }: ConnectingLineProps) {
+function ElbowConnector({ idealPercent, adjustedPercent, team, compact }: ConnectorProps) {
   const isPrimary = team === 'A';
   const lineColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.35)'
-    : 'rgba(208, 188, 255, 0.35)';
+    ? 'rgba(40, 223, 181, 0.3)'
+    : 'rgba(208, 188, 255, 0.3)';
   const dotColor = isPrimary
     ? 'rgba(40, 223, 181, 0.6)'
     : 'rgba(208, 188, 255, 0.6)';
-  const axisPos = compact ? 30 : 40;
+  const axisPos = compact ? AXIS_POS.compact : AXIS_POS.normal;
+  const cardEdge = compact ? CARD_OFFSET.compact : CARD_OFFSET.normal;
+  const stubEnd = axisPos + CONNECTOR_STUB; // px from same side as axis
+  const w = 2;
 
-  const topPct = Math.min(idealPercent, adjustedPercent);
-  const heightPct = Math.abs(adjustedPercent - idealPercent);
+  // Three segments forming a stepped elbow:
+  // 1. Horizontal stub from axis at true year position
+  // 2. Vertical segment from true year to adjusted position
+  // 3. Horizontal segment from vertical to card edge
 
   return (
     <>
-      {/* Vertical line along axis from true year to adjusted position */}
-      <div
-        className="absolute pointer-events-none"
-        style={{
-          top: `${topPct}%`,
-          height: `${heightPct}%`,
-          width: 2,
-          ...(isPrimary ? { left: axisPos } : { right: axisPos }),
-          background: lineColor,
-          zIndex: 15,
-        }}
-      />
-      {/* Dot at the true year position */}
+      {/* Dot at the true year on the axis */}
       <div
         className="absolute pointer-events-none rounded-full"
         style={{
           top: `${idealPercent}%`,
           width: 6,
           height: 6,
-          transform: 'translate(-50%, -50%)',
-          ...(isPrimary ? { left: axisPos + 1 } : { right: axisPos - 1 }),
+          transform: 'translateY(-50%)',
+          ...(isPrimary
+            ? { left: axisPos - 2 }
+            : { right: axisPos - 2 }),
           background: dotColor,
           boxShadow: `0 0 6px ${dotColor}`,
           zIndex: 16,
+        }}
+      />
+
+      {/* 1. Horizontal stub at true year (axis → stub end) */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: `${idealPercent}%`,
+          height: w,
+          transform: 'translateY(-50%)',
+          ...(isPrimary
+            ? { left: axisPos, width: CONNECTOR_STUB }
+            : { right: axisPos, width: CONNECTOR_STUB }),
+          background: lineColor,
+          zIndex: 15,
+        }}
+      />
+
+      {/* 2. Vertical segment (true year → adjusted position) at stub end */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: `${Math.min(idealPercent, adjustedPercent)}%`,
+          height: `${Math.abs(adjustedPercent - idealPercent)}%`,
+          width: w,
+          ...(isPrimary
+            ? { left: stubEnd }
+            : { right: stubEnd }),
+          background: lineColor,
+          zIndex: 15,
+        }}
+      />
+
+      {/* 3. Horizontal segment at adjusted position (stub end → card edge) */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: `${adjustedPercent}%`,
+          height: w,
+          transform: 'translateY(-50%)',
+          ...(isPrimary
+            ? { left: stubEnd, width: cardEdge - stubEnd }
+            : { right: stubEnd, width: cardEdge - stubEnd }),
+          background: lineColor,
+          zIndex: 15,
         }}
       />
     </>
   );
 }
 
-/* ── Placed Card (Stitch glass-panel style) ──────────── */
+/* ── Placed Card ─────────────────────────────────────── */
 
 interface PlacedCardProps {
   song: PlacedSong;
@@ -208,7 +252,7 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
     ? 'shadow-[0_4px_12px_rgba(40,223,181,0.3)]'
     : 'shadow-[0_4px_12px_rgba(208,188,255,0.2)]';
   const checkColor = isPrimary ? 'text-primary' : 'text-secondary';
-  const cardOffset = compact ? 36 : 48;
+  const cardOffset = compact ? CARD_OFFSET.compact : CARD_OFFSET.normal;
 
   return (
     <motion.div
@@ -265,7 +309,7 @@ function GhostCard({ song, team, compact, topPercent }: GhostCardProps) {
   const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
   const badgeBg = isPrimary ? 'bg-primary' : 'bg-secondary';
   const badgeText = isPrimary ? 'text-on-primary' : 'text-on-secondary-fixed';
-  const cardOffset = compact ? 36 : 48;
+  const cardOffset = compact ? CARD_OFFSET.compact : CARD_OFFSET.normal;
 
   return (
     <motion.div
@@ -337,21 +381,35 @@ export default function Timeline({
   const CARD_HALF_PCT = compact ? 4.5 : 6.5;
   const MIN_GAP = compact ? MIN_CENTER_GAP_COMPACT : MIN_CENTER_GAP_NORMAL;
 
-  // Screen order: newest first (top of screen = low %)
+  // Compute positions for ALL cards (including ghost) so the ghost
+  // gets rendered at the adjusted position it had before the challenge.
+  const allScreenOrder = [...sorted].reverse();
+  const allIdealPositions = allScreenOrder.map(s => yearToPercent(s.releaseYear));
+  const allAdjustedPositions = resolvePositions(allIdealPositions, MIN_GAP);
+
+  // Build position map for ALL cards
+  const fullPositionMap = new Map<string, { ideal: number; adjusted: number }>();
+  allScreenOrder.forEach((song, i) => {
+    fullPositionMap.set(song.spotifyId, {
+      ideal: allIdealPositions[i],
+      adjusted: allAdjustedPositions[i],
+    });
+  });
+
+  // Compute positions for solid cards only (used for drop zones and rendering)
   const screenOrder = [...solidSorted].reverse();
   const idealPositions = screenOrder.map(s => yearToPercent(s.releaseYear));
   const adjustedPositions = resolvePositions(idealPositions, MIN_GAP);
 
-  // Map spotifyId → adjusted position for easy lookup
-  const positionMap = new Map<string, { ideal: number; adjusted: number }>();
+  const solidPositionMap = new Map<string, { ideal: number; adjusted: number }>();
   screenOrder.forEach((song, i) => {
-    positionMap.set(song.spotifyId, {
+    solidPositionMap.set(song.spotifyId, {
       ideal: idealPositions[i],
       adjusted: adjustedPositions[i],
     });
   });
 
-  // ── Build drop zones using adjusted positions ──
+  // ── Build drop zones using adjusted positions of solid cards ──
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && solidSorted.length > 0) {
     const edges = adjustedPositions.map((p) => ({
@@ -378,6 +436,7 @@ export default function Timeline({
     dropZones.push({ id: 'drop-0', topPct: 0, heightPct: 100 });
   }
 
+  const axisPos = compact ? AXIS_POS.compact : AXIS_POS.normal;
   const axisColor = isPrimary
     ? 'rgba(40, 223, 181, 0.3)'
     : 'rgba(208, 188, 255, 0.3)';
@@ -409,8 +468,8 @@ export default function Timeline({
             style={{
               position: 'absolute',
               ...(isPrimary
-                ? { left: compact ? 30 : 40 }
-                : { right: compact ? 30 : 40 }),
+                ? { left: axisPos }
+                : { right: axisPos }),
               top: compact ? 8 : 12,
               bottom: compact ? 8 : 12,
               width: 2,
@@ -462,12 +521,12 @@ export default function Timeline({
             />
           ))}
 
-          {/* ── Connecting lines (displaced cards) ─────── */}
+          {/* ── Elbow connectors (displaced cards) ─────── */}
           {solidSorted.map((song) => {
-            const pos = positionMap.get(song.spotifyId);
+            const pos = solidPositionMap.get(song.spotifyId);
             if (!pos || Math.abs(pos.ideal - pos.adjusted) < 0.5) return null;
             return (
-              <ConnectingLine
+              <ElbowConnector
                 key={`line-${song.spotifyId}`}
                 idealPercent={pos.ideal}
                 adjustedPercent={pos.adjusted}
@@ -484,13 +543,13 @@ export default function Timeline({
               song={ghostSong}
               team={team}
               compact={compact}
-              topPercent={yearToPercent(ghostSong.releaseYear)}
+              topPercent={fullPositionMap.get(ghostSong.spotifyId)?.adjusted ?? yearToPercent(ghostSong.releaseYear)}
             />
           )}
 
           {/* ── Placed cards ────────────────────────────── */}
           {solidSorted.map((song, i) => {
-            const pos = positionMap.get(song.spotifyId);
+            const pos = solidPositionMap.get(song.spotifyId);
             return (
               <PlacedCard
                 key={song.spotifyId}
