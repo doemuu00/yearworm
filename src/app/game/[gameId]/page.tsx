@@ -313,8 +313,8 @@ export default function GamePage() {
   const showDraggableCard = songReady && currentSong;
   const isChallenging = phase === 'challenge-placing';
 
-  // Hide the last-placed card's year and correctness until the result is shown
-  const unrevealed = phase === 'challenge-window' || phase === 'challenge-placing' || phase === 'guess-commit';
+  // Hide the last-placed card's year and correctness until all overlays are dismissed
+  const unrevealed = phase !== 'playing' && phase !== 'pass-device' && phase !== 'game-over';
   const hiddenSongId = unrevealed && lastPlacedSong ? lastPlacedSong.spotifyId : undefined;
 
   // Always Team A left, Team B right
