@@ -49,15 +49,22 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
           max={30}
           step={5}
           formatValue={(v) => `${v}s`}
-          onChange={(v) => update({ clipDurationSeconds: v })}
+          onChange={(v) => {
+            const minTurn = Math.ceil(v / 15) * 15;
+            const turnPatch: Partial<GameSettings> = { clipDurationSeconds: v };
+            if (settings.turnTimeLimitSeconds !== 0 && settings.turnTimeLimitSeconds < minTurn) {
+              turnPatch.turnTimeLimitSeconds = minTurn;
+            }
+            update(turnPatch);
+          }}
           colorClass="primary"
         />
 
         <SliderSetting
           label="Turn Time Limit"
           description="Time to place a song"
-          value={settings.turnTimeLimitSeconds === 0 ? 135 : settings.turnTimeLimitSeconds}
-          min={15}
+          value={settings.turnTimeLimitSeconds === 0 ? 135 : Math.max(settings.turnTimeLimitSeconds, Math.ceil(settings.clipDurationSeconds / 15) * 15)}
+          min={Math.ceil(settings.clipDurationSeconds / 15) * 15}
           max={135}
           step={15}
           formatValue={(v) => (v >= 135 ? '∞' : `${v}s`)}
