@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState as useStateReact } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { PlacedSong, Team } from '@/lib/game/types';
 
 /* ── Constants ─────────────────────────────────────────── */
@@ -156,7 +156,7 @@ export default function Timeline({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const [containerH, setContainerH] = useStateReact(compact ? 300 : 500);
+  const [containerH, setContainerH] = useStateReact(500);
 
   // Measure actual container height
   useEffect(() => {
@@ -164,16 +164,6 @@ export default function Timeline({
       setContainerH(innerRef.current.offsetHeight);
     }
   }, [isDragActive]);
-
-  // Auto-scroll to show latest placed card (newest = top)
-  useEffect(() => {
-    if (sorted.length > 0 && scrollRef.current) {
-      const newestYear = sorted[sorted.length - 1].releaseYear;
-      const pct = yearToPercent(newestYear) / 100;
-      const scrollTarget = scrollRef.current.scrollHeight * pct - scrollRef.current.clientHeight / 2;
-      scrollRef.current.scrollTo({ top: scrollTarget, behavior: 'smooth' });
-    }
-  }, [sorted.length, sorted]);
 
   const wrapperClasses = isActiveTeam
     ? ''
@@ -226,7 +216,6 @@ export default function Timeline({
     dropZones.push({ id: 'drop-0', topPct: 0, heightPct: 100 });
   }
 
-  const minH = compact ? 200 : 350;
   const axisColor = isPrimary
     ? 'rgba(40, 223, 181, 0.3)'
     : 'rgba(208, 188, 255, 0.3)';
@@ -241,18 +230,15 @@ export default function Timeline({
     : 'rgba(208, 188, 255, 0.15)';
 
   return (
-    <div className={`relative ${wrapperClasses}`}>
+    <div className={`relative h-full ${wrapperClasses}`}>
       <div
         ref={scrollRef}
-        className="overflow-y-auto rounded-xl"
-        style={{ scrollBehavior: 'smooth', maxHeight: compact ? 200 : 400 }}
+        className="rounded-xl h-full"
       >
         <div
           ref={innerRef}
-          className="relative"
+          className="relative h-full"
           style={{
-            minHeight: minH,
-            height: compact ? 300 : 500,
             padding: `${compact ? 8 : 12}px 0`,
           }}
         >

@@ -296,7 +296,7 @@ export default function GamePage() {
       >
         <main className="flex-1 pt-24 pb-28 px-4 md:px-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
           {/* LEFT COLUMN: Team A */}
-          <section className="col-span-12 md:col-span-3 flex flex-col gap-6">
+          <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
             <TeamPanel
               label="Team A"
               team="A"
@@ -306,7 +306,7 @@ export default function GamePage() {
               isActive={teamAIsActive}
               align="left"
             />
-            <div className="flex flex-col gap-4">
+            <div className="flex-1 min-h-0">
               <Timeline
                 timeline={teamATimelineData}
                 team="A"
@@ -358,7 +358,7 @@ export default function GamePage() {
           </section>
 
           {/* RIGHT COLUMN: Team B */}
-          <section className="col-span-12 md:col-span-3 flex flex-col gap-6">
+          <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
             <TeamPanel
               label="Team B"
               team="B"
@@ -368,7 +368,7 @@ export default function GamePage() {
               isActive={teamBIsActive}
               align="right"
             />
-            <div className="flex flex-col gap-4">
+            <div className="flex-1 min-h-0">
               <Timeline
                 timeline={teamBTimelineData}
                 team="B"

@@ -41,43 +41,27 @@ export function TeamPanel({
   const targetColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
 
   return (
-    <motion.div
-      className={`glass-panel relative flex-1 overflow-hidden rounded-xl p-4 border ${borderClass} ${bgClass} ${
-        !isActive ? 'opacity-80' : ''
+    <div
+      className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${borderClass} ${bgClass} ${
+        !isActive ? 'opacity-60' : ''
       }`}
       style={{
-        background: 'rgba(49, 52, 66, 0.4)',
-        backdropFilter: 'blur(20px)',
+        background: 'rgba(49, 52, 66, 0.3)',
       }}
-      animate={{
-        opacity: isActive ? 1 : 0.8,
-      }}
-      transition={{ duration: 0.4 }}
     >
-      <div
-        className="flex items-center justify-between"
-        style={{ flexDirection: align === 'right' ? 'row-reverse' : 'row' }}
+      <h2 className={labelClass}>{label}</h2>
+      <motion.span
+        key={score}
+        className="text-lg font-black font-headline text-on-surface leading-none"
+        initial={{ scale: 1.3, opacity: 0.5 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
       >
-        {/* Left: team info */}
-        <div className="flex flex-col gap-2">
-          <div>
-            <h2 className={labelClass}>{label}</h2>
-            <p className="text-3xl font-black font-headline text-on-surface leading-none mt-1">
-              <motion.span
-                key={score}
-                initial={{ scale: 1.3, opacity: 0.5 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-              >
-                {score}
-              </motion.span>
-              <span className={`text-xl font-bold italic ${targetColor}`}>/{cardsToWin}</span>
-            </p>
-          </div>
-          <TokenDisplay tokens={tokens} team={team} />
-        </div>
-      </div>
-    </motion.div>
+        {score}
+      </motion.span>
+      <span className={`text-sm font-bold italic ${targetColor}`}>/{cardsToWin}</span>
+      <TokenDisplay tokens={tokens} team={team} />
+    </div>
   );
 }
 
