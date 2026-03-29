@@ -41,28 +41,32 @@ export function TeamPanel({
   const targetColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
 
   return (
-    <div
-      className={`flex items-center gap-3 px-3 py-2 rounded-lg border ${borderClass} ${bgClass} ${
-        !isActive ? 'opacity-60' : ''
-      }`}
-      style={{
-        background: 'rgba(49, 52, 66, 0.3)',
-      }}
-    >
+    <div className={`flex flex-col gap-1 ${!isActive ? 'opacity-60' : ''}`}>
       <h2 className={labelClass}>{label}</h2>
-      <span className="font-headline font-black text-sm leading-none flex items-baseline gap-0">
-        <motion.span
-          key={score}
-          className={scoreColor}
-          initial={{ scale: 1.3, opacity: 0.5 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        >
-          {score}
-        </motion.span>
-        <span className={targetColor}>/{cardsToWin}</span>
-      </span>
-      <TokenDisplay tokens={tokens} team={team} />
+      <div
+        className={`flex flex-col gap-1.5 px-3 py-2 rounded-lg border ${borderClass} ${bgClass}`}
+        style={{ background: 'rgba(49, 52, 66, 0.3)' }}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Points</span>
+          <span className="font-headline font-black text-sm leading-none flex items-baseline">
+            <motion.span
+              key={score}
+              className={scoreColor}
+              initial={{ scale: 1.3, opacity: 0.5 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            >
+              {score}
+            </motion.span>
+            <span className={targetColor}>/{cardsToWin}</span>
+          </span>
+        </div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Tokens</span>
+          <TokenDisplay tokens={tokens} team={team} />
+        </div>
+      </div>
     </div>
   );
 }
