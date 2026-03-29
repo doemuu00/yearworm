@@ -34,6 +34,8 @@ export interface TimelineProps {
   compact?: boolean;
   /** During challenge-placing, render this song as a ghost (transparent, no drop zone impact) */
   ghostSongId?: string;
+  /** Hide year and correctness icon for this song (prevents spoilers before reveal) */
+  hiddenSongId?: string;
 }
 
 /** Map a year to a percentage position — newest (2030) at top (0%), oldest (1915) at bottom (100%) */
@@ -240,9 +242,10 @@ interface PlacedCardProps {
   index: number;
   compact: boolean;
   topPercent: number;
+  hidden?: boolean;
 }
 
-function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps) {
+function PlacedCard({ song, team, index, compact, topPercent, hidden = false }: PlacedCardProps) {
   const isPrimary = team === 'A';
   const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
@@ -270,9 +273,9 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
       <div className={`glass-panel ${compact ? 'p-3' : 'p-5'} rounded-xl shadow-lg relative overflow-hidden border ${borderColor}`}>
         <div className={`flex justify-between items-start mb-2 ${mirror ? 'flex-row-reverse' : ''}`}>
           <span className={`px-3 py-1.5 ${badgeBg} ${badgeText} font-headline font-black text-sm rounded-lg ${badgeShadow} tracking-tight`}>
-            {song.releaseYear}
+            {hidden ? '?' : song.releaseYear}
           </span>
-          {song.placedCorrectly !== undefined && (
+          {!hidden && song.placedCorrectly !== undefined && (
             <span
               className={`material-symbols-outlined ${song.placedCorrectly ? checkColor : 'text-error'} text-xl`}
               style={{ fontVariationSettings: "'FILL' 1" }}
@@ -356,6 +359,7 @@ export default function Timeline({
   isDragActive,
   compact = false,
   ghostSongId,
+  hiddenSongId,
 }: TimelineProps) {
   const sorted = [...timeline].sort((a, b) => a.releaseYear - b.releaseYear);
   const isPrimary = team === 'A';
@@ -567,6 +571,7 @@ export default function Timeline({
                 index={i}
                 compact={compact}
                 topPercent={pos?.adjusted ?? yearToPercent(song.releaseYear)}
+                hidden={song.spotifyId === hiddenSongId}
               />
             );
           })}

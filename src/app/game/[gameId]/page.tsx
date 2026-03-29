@@ -313,6 +313,10 @@ export default function GamePage() {
   const showDraggableCard = songReady && currentSong;
   const isChallenging = phase === 'challenge-placing';
 
+  // Hide the last-placed card's year and correctness until the result is shown
+  const unrevealed = phase === 'challenge-window' || phase === 'challenge-placing' || phase === 'guess-commit';
+  const hiddenSongId = unrevealed && lastPlacedSong ? lastPlacedSong.spotifyId : undefined;
+
   // Always Team A left, Team B right
   // During challenge-placing, the placing team's timeline is active for the challenger
   const teamATimelineData = currentTeam === 'A' ? currentTeamTimeline : teamATimeline;
@@ -364,6 +368,7 @@ export default function GamePage() {
                 isDragActive={teamAIsActive ? isDragActive : false}
                 compact={!teamAIsActive}
                 ghostSongId={isChallenging && lastPlacedTeam === 'A' ? lastPlacedSong?.spotifyId : undefined}
+                hiddenSongId={lastPlacedTeam === 'A' ? hiddenSongId : undefined}
               />
             </div>
           </section>
@@ -462,6 +467,7 @@ export default function GamePage() {
                 isDragActive={teamBIsActive ? isDragActive : false}
                 compact={!teamBIsActive}
                 ghostSongId={isChallenging && lastPlacedTeam === 'B' ? lastPlacedSong?.spotifyId : undefined}
+                hiddenSongId={lastPlacedTeam === 'B' ? hiddenSongId : undefined}
               />
             </div>
           </section>
