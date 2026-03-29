@@ -220,17 +220,22 @@ export default function AudioPlayer({
 
             {/* Center play button */}
             <motion.button
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-on-primary-container flex items-center justify-center text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)] active:scale-95 transition-all duration-200"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-on-primary-container flex flex-col items-center justify-center text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)] active:scale-95 transition-all duration-200"
               onClick={handleTap}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span
-                className="material-symbols-outlined text-6xl"
+                className="material-symbols-outlined text-5xl"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 {state === 'playing' ? 'pause' : 'play_arrow'}
               </span>
+              {(state === 'playing' || state === 'paused') && (
+                <span className="text-[11px] font-mono font-bold -mt-1 text-on-primary/80">
+                  {Math.ceil(timeRemaining)}s
+                </span>
+              )}
             </motion.button>
 
             {/* Pulsing ring -- idle */}
@@ -319,10 +324,6 @@ export default function AudioPlayer({
               </motion.button>
             )}
 
-            {/* Time */}
-            <span className="text-xs font-mono text-on-surface-variant/50">
-              {Math.ceil(timeRemaining)}s
-            </span>
           </motion.div>
         )}
       </AnimatePresence>

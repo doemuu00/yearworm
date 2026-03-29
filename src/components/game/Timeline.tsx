@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState as useStateReact } from 'react';
+import { useRef } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { motion } from 'framer-motion';
 import type { PlacedSong, Team } from '@/lib/game/types';
@@ -156,60 +156,52 @@ export default function Timeline({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
-  const [containerH, setContainerH] = useStateReact(500);
-
-  // Measure actual container height
-  useEffect(() => {
-    if (innerRef.current) {
-      setContainerH(innerRef.current.offsetHeight);
-    }
-  }, [isDragActive]);
 
   const wrapperClasses = isActiveTeam
     ? ''
     : 'opacity-60 grayscale-[0.3]';
 
-  // Card exclusion zone: convert card pixel height to percentage of container
-  const cardH = compact ? 60 : 90;
-  const cardExclusionPct = ((cardH / 2 + 10) / containerH) * 100;
-
-  // Build drop zones between cards (vertical)
+  // Build drop zones as simple ranges between card midpoints
+  // Each card sits at yearToPercent(year)%. Drop zones fill the gaps.
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
-    // Zone above the newest card (top of timeline)
-    const newestPct = yearToPercent(sorted[sorted.length - 1].releaseYear);
-    if (newestPct - cardExclusionPct > 2) {
+    // Cards are sorted ascending by year. On screen, newest (last) is at top (low %).
+    // Build boundaries as midpoints between adjacent cards
+    const positions = sorted.map((s) => yearToPercent(s.releaseYear));
+
+    // Zone above newest card: 0% to midpoint between top edge and newest card
+    const topBoundary = positions[positions.length - 1] / 2;
+    if (topBoundary > 1) {
       dropZones.push({
         id: `drop-${sorted.length}`,
         topPct: 0,
-        heightPct: newestPct - cardExclusionPct,
+        heightPct: positions[positions.length - 1],
       });
     }
 
-    // Zones between cards (iterate from newest to oldest on screen)
+    // Zones between cards (from newest at top to oldest at bottom)
     for (let i = sorted.length - 1; i > 0; i--) {
-      const upperPct = yearToPercent(sorted[i].releaseYear);
-      const lowerPct = yearToPercent(sorted[i - 1].releaseYear);
-      const zoneTop = upperPct + cardExclusionPct;
-      const zoneBottom = lowerPct - cardExclusionPct;
-      const zoneHeight = zoneBottom - zoneTop;
-      if (zoneHeight > 2) {
+      const upperPos = positions[i];
+      const lowerPos = positions[i - 1];
+      const midTop = upperPos;
+      const midBottom = lowerPos;
+      const height = midBottom - midTop;
+      if (height > 1) {
         dropZones.push({
           id: `drop-${i}`,
-          topPct: zoneTop,
-          heightPct: zoneHeight,
+          topPct: midTop,
+          heightPct: height,
         });
       }
     }
 
-    // Zone below the oldest card (bottom of timeline)
-    const oldestPct = yearToPercent(sorted[0].releaseYear);
-    const belowStart = oldestPct + cardExclusionPct;
-    if (belowStart < 98) {
+    // Zone below oldest card: oldest card position to 100%
+    const oldestPos = positions[0];
+    if (oldestPos < 99) {
       dropZones.push({
         id: 'drop-0',
-        topPct: belowStart,
-        heightPct: 100 - belowStart,
+        topPct: oldestPos,
+        heightPct: 100 - oldestPos,
       });
     }
   } else if (showDropZones && sorted.length === 0) {
