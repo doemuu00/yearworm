@@ -150,6 +150,17 @@ export default function PlacementResult({
     subtitleText = isCorrect
       ? `${teamLabel(placingTeam)} placed it right`
       : 'The song was removed from the timeline';
+  } else if (isCorrect) {
+    // Scenario 5: original was correct — challenge failed
+    // Mixed result: no icon (one team right, one wrong)
+    showCheck = null;
+    accentColor = teamColor(placingTeam);
+    headlineText = 'Challenge failed!';
+    subtitleText = '';
+    challengeLines = [
+      { label: teamLabel(placingTeam), text: 'placed correctly', color: '#22c55e' },
+      { label: teamLabel(challengingTeam), text: 'challenged incorrectly', color: '#ef4444' },
+    ];
   } else if (challengeSucceeded) {
     // Scenario 3: original wrong, challenger correct — card stolen
     // Mixed result: no icon (one team right, one wrong)
@@ -161,7 +172,7 @@ export default function PlacementResult({
       { label: teamLabel(placingTeam), text: 'placed incorrectly', color: '#ef4444' },
       { label: teamLabel(challengingTeam), text: 'challenged correctly — card stolen!', color: teamColor(challengingTeam) },
     ];
-  } else if (challengerCorrect === false) {
+  } else {
     // Scenario 4: original wrong, challenger also wrong — both wrong
     showCheck = false;
     accentColor = '#ef4444';
@@ -170,17 +181,6 @@ export default function PlacementResult({
     challengeLines = [
       { label: teamLabel(placingTeam), text: 'placed incorrectly', color: '#ef4444' },
       { label: teamLabel(challengingTeam), text: 'also placed incorrectly', color: '#ef4444' },
-    ];
-  } else {
-    // Scenario 5: original was correct — challenge failed
-    // Mixed result: no icon (one team right, one wrong)
-    showCheck = null;
-    accentColor = teamColor(placingTeam);
-    headlineText = 'Challenge failed!';
-    subtitleText = '';
-    challengeLines = [
-      { label: teamLabel(placingTeam), text: 'placed correctly', color: '#22c55e' },
-      { label: teamLabel(challengingTeam), text: 'challenged incorrectly', color: '#ef4444' },
     ];
   }
 
