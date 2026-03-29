@@ -261,7 +261,7 @@ export default function GamePage() {
     skipSong();
     setSongReady(false);
 
-    setPhase('pass-device');
+    setPhase('playing');
   }, [currentTeamTokens, settings.tokensToSkip, turnTimer, audio, skipSong]);
 
   const handleResultDismiss = useCallback(() => {

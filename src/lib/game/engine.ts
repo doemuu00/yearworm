@@ -201,7 +201,6 @@ export function skipSong(state: GameState): GameState {
     ...state,
     [tokensKey]: newTokens,
     currentSongIndex: state.currentSongIndex + 1,
-    currentTeam: state.currentTeam === "A" ? "B" : "A",
   };
 }
 
