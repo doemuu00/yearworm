@@ -362,13 +362,11 @@ export default function Timeline({
   const showDropZones = isDragActive && isActiveTeam;
 
   // Separate ghost card from solid cards for drop zone calculation
-  const ghostSong = ghostSongId ? sorted.find(s => s.spotifyId === ghostSongId) : null;
+  const ghostSong = ghostSongId ? sorted.find(s => s.spotifyId === ghostSongId) ?? null : null;
   const solidSorted = ghostSongId ? sorted.filter(s => s.spotifyId !== ghostSongId) : sorted;
 
-  // Find the drop zone index to exclude (where ghost card sits among solid cards by year)
-  const excludedDropIndex = ghostSong
-    ? solidSorted.filter(s => s.releaseYear <= ghostSong.releaseYear).length
-    : undefined;
+  // The excluded drop zone is at the ghost's placedAtIndex — where the team dropped it
+  const excludedDropIndex = ghostSong !== null ? ghostSong.placedAtIndex : undefined;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -381,22 +379,7 @@ export default function Timeline({
   const CARD_HALF_PCT = compact ? 4.5 : 6.5;
   const MIN_GAP = compact ? MIN_CENTER_GAP_COMPACT : MIN_CENTER_GAP_NORMAL;
 
-  // Compute positions for ALL cards (including ghost) so the ghost
-  // gets rendered at the adjusted position it had before the challenge.
-  const allScreenOrder = [...sorted].reverse();
-  const allIdealPositions = allScreenOrder.map(s => yearToPercent(s.releaseYear));
-  const allAdjustedPositions = resolvePositions(allIdealPositions, MIN_GAP);
-
-  // Build position map for ALL cards
-  const fullPositionMap = new Map<string, { ideal: number; adjusted: number }>();
-  allScreenOrder.forEach((song, i) => {
-    fullPositionMap.set(song.spotifyId, {
-      ideal: allIdealPositions[i],
-      adjusted: allAdjustedPositions[i],
-    });
-  });
-
-  // Compute positions for solid cards only (used for drop zones and rendering)
+  // Compute positions for solid cards (used for drop zones, card rendering, and ghost placement)
   const screenOrder = [...solidSorted].reverse();
   const idealPositions = screenOrder.map(s => yearToPercent(s.releaseYear));
   const adjustedPositions = resolvePositions(idealPositions, MIN_GAP);
@@ -408,6 +391,32 @@ export default function Timeline({
       adjusted: adjustedPositions[i],
     });
   });
+
+  // ── Compute ghost position from placedAtIndex neighbors ──
+  // The ghost should appear where the team placed it (between its neighbors),
+  // NOT at its correct year position (which would reveal the answer).
+  let ghostTopPercent = 50;
+  if (ghostSong) {
+    const P = ghostSong.placedAtIndex;
+    // After removing ghost from solidSorted, left neighbor = solidSorted[P-1], right = solidSorted[P]
+    const leftNeighbor = P > 0 ? solidSorted[P - 1] : null;
+    const rightNeighbor = P < solidSorted.length ? solidSorted[P] : null;
+
+    const belowPos = leftNeighbor
+      ? solidPositionMap.get(leftNeighbor.spotifyId)?.adjusted
+      : undefined;
+    const abovePos = rightNeighbor
+      ? solidPositionMap.get(rightNeighbor.spotifyId)?.adjusted
+      : undefined;
+
+    if (belowPos !== undefined && abovePos !== undefined) {
+      ghostTopPercent = (belowPos + abovePos) / 2;
+    } else if (belowPos !== undefined) {
+      ghostTopPercent = Math.max(4, belowPos - MIN_GAP / 2);
+    } else if (abovePos !== undefined) {
+      ghostTopPercent = Math.min(96, abovePos + MIN_GAP / 2);
+    }
+  }
 
   // ── Build drop zones using adjusted positions of solid cards ──
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
@@ -543,7 +552,7 @@ export default function Timeline({
               song={ghostSong}
               team={team}
               compact={compact}
-              topPercent={fullPositionMap.get(ghostSong.spotifyId)?.adjusted ?? yearToPercent(ghostSong.releaseYear)}
+              topPercent={ghostTopPercent}
             />
           )}
 
