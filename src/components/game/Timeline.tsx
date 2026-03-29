@@ -162,29 +162,21 @@ export default function Timeline({
     ? ''
     : 'opacity-60 grayscale-[0.3]';
 
-  // Build drop zones between placed cards using midpoints as boundaries.
-  // Cards sit at yearToPercent(year)%. Drop zones occupy the space BETWEEN cards,
-  // never overlapping a card. Boundaries are midpoints between adjacent card positions.
+  // Build drop zones between placed cards using card positions as boundaries.
+  // N cards produce N+1 zones: above first card, between each pair, below last card.
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
     // sorted ascending by year. On screen: newest (last) at top (low %), oldest (first) at bottom (high %).
-    // Reverse to get screen order: top-to-bottom
-    const screenOrder = [...sorted].reverse(); // newest first
+    const screenOrder = [...sorted].reverse(); // newest first (top to bottom)
     const positions = screenOrder.map((s) => yearToPercent(s.releaseYear));
 
-    // Build midpoint boundaries between each pair of adjacent cards
-    const boundaries: number[] = [0]; // top edge
-    for (let i = 0; i < positions.length - 1; i++) {
-      boundaries.push((positions[i] + positions[i + 1]) / 2);
-    }
-    boundaries.push(100); // bottom edge
-
-    // N cards create N+1 zones (above first, between each pair, below last)
-    for (let i = 0; i <= positions.length; i++) {
+    // Boundaries: top edge, each card position, bottom edge
+    const boundaries = [0, ...positions, 100];
+    for (let i = 0; i < boundaries.length - 1; i++) {
       const top = boundaries[i];
-      const bottom = boundaries[i + 1] ?? 100;
+      const bottom = boundaries[i + 1];
       const height = bottom - top;
-      if (height > 1) {
+      if (height > 0.5) {
         // Map back to sorted index: screenOrder[0] = sorted[sorted.length-1], etc.
         // drop-N means "insert at position N in the sorted array"
         const dropIndex = sorted.length - i;
