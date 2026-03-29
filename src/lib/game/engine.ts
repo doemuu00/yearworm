@@ -28,10 +28,6 @@ export function placeSong(state: GameState, position: number): GameState {
 
   const timelineKey =
     state.currentTeam === "A" ? "teamATimeline" : "teamBTimeline";
-  const tokensKey =
-    state.currentTeam === "A" ? "teamATokens" : "teamBTokens";
-  const scoreKey =
-    state.currentTeam === "A" ? "teamAScore" : "teamBScore";
 
   const currentTimeline = state[timelineKey];
   const isCorrect = validatePlacement(currentTimeline, song, position);
@@ -55,22 +51,16 @@ export function placeSong(state: GameState, position: number): GameState {
     placedAtIndex: i,
   }));
 
-  let newTokens = state[tokensKey];
-  let newScore = state[scoreKey];
-
-  if (isCorrect) {
-    newTokens = applyTokenChange(newTokens, 1);
-    newScore += 1;
-  }
-
   const newState: GameState = {
     ...state,
     [timelineKey]: reindexedTimeline,
-    [tokensKey]: newTokens,
-    [scoreKey]: newScore,
     currentSongIndex: state.currentSongIndex + 1,
     currentTeam: state.currentTeam === "A" ? "B" : "A",
   };
+
+  // Derive scores from timelines
+  newState.teamAScore = getTeamScore(newState, "A");
+  newState.teamBScore = getTeamScore(newState, "B");
 
   // Check for a winner after placement
   const winner = checkWinCondition(newState);
@@ -106,13 +96,9 @@ export function challengePlacement(
     lastPlacedTeam === "A" ? "teamATimeline" : "teamBTimeline";
   const challengerTimelineKey =
     challengingTeam === "A" ? "teamATimeline" : "teamBTimeline";
-  const challengerScoreKey =
-    challengingTeam === "A" ? "teamAScore" : "teamBScore";
-  const placerScoreKey =
-    lastPlacedTeam === "A" ? "teamAScore" : "teamBScore";
 
   // Spend the challenge token
-  let challengerTokens = applyTokenChange(state[challengerTokensKey], -1);
+  const challengerTokens = applyTokenChange(state[challengerTokensKey], -1);
 
   const originalCorrect = lastPlacedSong.placedCorrectly;
 
@@ -129,20 +115,15 @@ export function challengePlacement(
 
   if (originalCorrect) {
     // (a) Original was correct — card stays, challenger just lost a token
-    return {
-      state: {
-        ...state,
-        [challengerTokensKey]: challengerTokens,
-      },
-      challengerCorrect,
+    const newState = {
+      ...state,
+      [challengerTokensKey]: challengerTokens,
     };
+    return { state: newState, challengerCorrect };
   }
 
   if (challengerCorrect) {
     // (b) Original wrong, challenger correct — steal card to challenger's timeline
-    const placerTimeline = cleanedPlacerTimeline;
-    const placerScore = Math.max(0, state[placerScoreKey] - 1);
-
     const challengerTimeline = state[challengerTimelineKey];
     const correctPos = findCorrectPosition(challengerTimeline, lastPlacedSong);
     const stolenSong: PlacedSong = {
@@ -156,32 +137,26 @@ export function challengePlacement(
       ...challengerTimeline.slice(correctPos),
     ].map((s, i) => ({ ...s, placedAtIndex: i }));
 
-    // Net 0 tokens spent (+1 back)
-    challengerTokens = applyTokenChange(challengerTokens, 1);
-
-    return {
-      state: {
-        ...state,
-        [placerTimelineKey]: placerTimeline,
-        [placerScoreKey]: placerScore,
-        [challengerTimelineKey]: newChallengerTimeline,
-        [challengerScoreKey]: state[challengerScoreKey] + 1,
-        [challengerTokensKey]: challengerTokens,
-      },
-      challengerCorrect,
+    const newState: GameState = {
+      ...state,
+      [placerTimelineKey]: cleanedPlacerTimeline,
+      [challengerTimelineKey]: newChallengerTimeline,
+      [challengerTokensKey]: challengerTokens,
     };
+    newState.teamAScore = getTeamScore(newState, "A");
+    newState.teamBScore = getTeamScore(newState, "B");
+    return { state: newState, challengerCorrect };
   }
 
   // (c) Original wrong, challenger also wrong — remove card, challenger lost a token
-  return {
-    state: {
-      ...state,
-      [placerTimelineKey]: cleanedPlacerTimeline,
-      [placerScoreKey]: Math.max(0, state[placerScoreKey] - 1),
-      [challengerTokensKey]: challengerTokens,
-    },
-    challengerCorrect,
+  const newState: GameState = {
+    ...state,
+    [placerTimelineKey]: cleanedPlacerTimeline,
+    [challengerTokensKey]: challengerTokens,
   };
+  newState.teamAScore = getTeamScore(newState, "A");
+  newState.teamBScore = getTeamScore(newState, "B");
+  return { state: newState, challengerCorrect };
 }
 
 /**
@@ -199,17 +174,18 @@ export function resolveUnchallengedPlacement(
   }
 
   const timelineKey = placedTeam === "A" ? "teamATimeline" : "teamBTimeline";
-  const scoreKey = placedTeam === "A" ? "teamAScore" : "teamBScore";
 
   const newTimeline = state[timelineKey]
     .filter((s) => s.spotifyId !== placedSong.spotifyId)
     .map((s, i) => ({ ...s, placedAtIndex: i }));
 
-  return {
+  const newState: GameState = {
     ...state,
     [timelineKey]: newTimeline,
-    [scoreKey]: Math.max(0, state[scoreKey]),
   };
+  newState.teamAScore = getTeamScore(newState, "A");
+  newState.teamBScore = getTeamScore(newState, "B");
+  return newState;
 }
 
 /**
@@ -226,6 +202,25 @@ export function skipSong(state: GameState): GameState {
     [tokensKey]: newTokens,
     currentSongIndex: state.currentSongIndex + 1,
     currentTeam: state.currentTeam === "A" ? "B" : "A",
+  };
+}
+
+/**
+ * Derive a team's score: count of correctly placed cards on their timeline.
+ */
+export function getTeamScore(state: GameState, team: Team): number {
+  const timeline = team === "A" ? state.teamATimeline : state.teamBTimeline;
+  return timeline.filter((s) => s.placedCorrectly).length;
+}
+
+/**
+ * Award a token to a team (e.g. for correctly guessing artist/song).
+ */
+export function awardGuessToken(state: GameState, team: Team): GameState {
+  const tokensKey = team === "A" ? "teamATokens" : "teamBTokens";
+  return {
+    ...state,
+    [tokensKey]: applyTokenChange(state[tokensKey], 1),
   };
 }
 

@@ -75,6 +75,7 @@ export function useGame() {
     lastPlacedSong: store.lastPlacedSong,
     lastPlacedTeam: store.lastPlacedTeam,
     lastChallengerCorrect: store.lastChallengerCorrect,
+    guessCommitted: store.guessCommitted,
     gameLog: store.gameLog,
     settings: store.settings,
 
@@ -86,5 +87,8 @@ export function useGame() {
     nextTurn: store.nextTurn,
     setGameState: store.setGameState,
     dismissChallenge: store.dismissChallenge,
+    commitGuess: store.commitGuess,
+    confirmGuess: store.confirmGuess,
+    resetGuess: store.resetGuess,
   };
 }

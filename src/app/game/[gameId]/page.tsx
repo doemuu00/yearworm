@@ -27,13 +27,14 @@ import TurnIndicator from '@/components/game/TurnIndicator';
 import { TeamPanel } from '@/components/game/ScoreBoard';
 import ChallengeModal from '@/components/game/ChallengeModal';
 import PlacementResult from '@/components/game/PlacementResult';
+import GuessModal from '@/components/game/GuessModal';
 import WinScreen from '@/components/game/WinScreen';
 import PassAndPlayInterstitial from '@/components/game/PassAndPlayInterstitial';
 import TopAppBar from '@/components/layout/TopAppBar';
 import type { Team, PlacedSong } from '@/lib/game/types';
 
 /* ── Phase type for local UI state ─────────────────────── */
-type Phase = 'playing' | 'challenge-window' | 'challenge-placing' | 'showing-result' | 'pass-device' | 'game-over';
+type Phase = 'playing' | 'challenge-window' | 'challenge-placing' | 'guess-commit' | 'showing-result' | 'guess-verify' | 'pass-device' | 'game-over';
 
 export default function GamePage() {
   const router = useRouter();
@@ -65,6 +66,10 @@ export default function GamePage() {
     nextTurn,
     dismissChallenge,
     lastChallengerCorrect,
+    guessCommitted,
+    commitGuess,
+    confirmGuess,
+    resetGuess,
   } = useGame();
 
   /* ── Local UI state ───────────────────────────────────── */
@@ -165,20 +170,6 @@ export default function GamePage() {
     setIsDragActive(true);
   }, []);
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      setIsDragActive(false);
-      const { over } = event;
-      if (!over) return;
-      const match = String(over.id).match(/^drop-(\d+)$/);
-      if (match) {
-        const position = parseInt(match[1], 10);
-        handlePlaceSong(position);
-      }
-    },
-    [handlePlaceSong],
-  );
-
   const handleDragCancel = useCallback(() => {
     setIsDragActive(false);
   }, []);
@@ -198,7 +189,6 @@ export default function GamePage() {
       const challengerCorrect = useGameStore.getState().lastChallengerCorrect ?? false;
       const challengeSucceeded = originalWrong && challengerCorrect;
 
-      setRevealed(true);
       setPlacementResult({
         song: lastPlacedSong,
         placingTeam: lastPlacedTeam,
@@ -206,15 +196,34 @@ export default function GamePage() {
         challengeSucceeded,
         challengerCorrect,
       });
-      setPhase('showing-result');
+      setIsDragActive(false);
       audio.stop();
+      // Go to guess-commit before revealing
+      setPhase('guess-commit');
     },
     [challengePlacement, audio, lastPlacedSong, lastPlacedTeam]
   );
 
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setIsDragActive(false);
+      const { over } = event;
+      if (!over) return;
+      const match = String(over.id).match(/^drop-(\d+)$/);
+      if (match) {
+        const position = parseInt(match[1], 10);
+        if (phase === 'challenge-placing') {
+          handleChallengerPlace(position);
+        } else {
+          handlePlaceSong(position);
+        }
+      }
+    },
+    [handlePlaceSong, handleChallengerPlace, phase],
+  );
+
   const handleDismissChallenge = useCallback(() => {
     dismissChallenge();
-    setRevealed(true);
 
     if (lastPlacedSong && lastPlacedTeam) {
       setPlacementResult({
@@ -222,13 +231,27 @@ export default function GamePage() {
         placingTeam: lastPlacedTeam,
         wasChallenged: false,
       });
-      setPhase('showing-result');
       audio.stop();
+      // Go to guess-commit before revealing
+      setPhase('guess-commit');
     } else {
       setPhase('pass-device');
       audio.stop();
     }
   }, [dismissChallenge, audio, lastPlacedSong, lastPlacedTeam]);
+
+  /* ── Guess flow handlers ─────────────────────────────── */
+  const handleGuessCommitYes = useCallback(() => {
+    commitGuess();
+    setRevealed(true);
+    setPhase('showing-result');
+  }, [commitGuess]);
+
+  const handleGuessCommitNo = useCallback(() => {
+    resetGuess();
+    setRevealed(true);
+    setPhase('showing-result');
+  }, [resetGuess]);
 
   const handleSkip = useCallback(() => {
     if (currentTeamTokens < (settings.tokensToSkip ?? 1)) return;
@@ -242,9 +265,26 @@ export default function GamePage() {
   }, [currentTeamTokens, settings.tokensToSkip, turnTimer, audio, skipSong]);
 
   const handleResultDismiss = useCallback(() => {
+    if (guessCommitted) {
+      // Go to guess-verify to confirm if guess was correct
+      setPhase('guess-verify');
+    } else {
+      setPlacementResult(null);
+      setPhase('pass-device');
+    }
+  }, [guessCommitted]);
+
+  const handleGuessVerifyYes = useCallback(() => {
+    confirmGuess();
     setPlacementResult(null);
     setPhase('pass-device');
-  }, []);
+  }, [confirmGuess]);
+
+  const handleGuessVerifyNo = useCallback(() => {
+    resetGuess();
+    setPlacementResult(null);
+    setPhase('pass-device');
+  }, [resetGuess]);
 
   const handlePassDeviceReady = useCallback(() => {
     activeTeamRef.current = currentTeam;
@@ -271,12 +311,20 @@ export default function GamePage() {
   const canSkipReady = canSkip || (songReady && currentTeamTokens >= (settings.tokensToSkip ?? 1));
 
   const showDraggableCard = songReady && currentSong;
+  const isChallenging = phase === 'challenge-placing';
 
   // Always Team A left, Team B right
+  // During challenge-placing, the placing team's timeline is active for the challenger
   const teamATimelineData = currentTeam === 'A' ? currentTeamTimeline : teamATimeline;
   const teamBTimelineData = currentTeam === 'B' ? currentTeamTimeline : teamBTimeline;
-  const teamAIsActive = currentTeam === 'A';
-  const teamBIsActive = currentTeam === 'B';
+
+  // During challenge: the PLACING team's timeline is active (challenger drops there)
+  const teamAIsActive = isChallenging
+    ? lastPlacedTeam === 'A'
+    : currentTeam === 'A';
+  const teamBIsActive = isChallenging
+    ? lastPlacedTeam === 'B'
+    : currentTeam === 'B';
 
   /* ── Guard: no song pool yet (redirecting) ─────────── */
   if (songPool.length === 0) {
@@ -321,56 +369,76 @@ export default function GamePage() {
 
           {/* CENTER COLUMN: Action Zone */}
           <section className="col-span-12 md:col-span-6 flex flex-col items-center gap-10 relative">
-            <TurnIndicator
-              currentTeam={currentTeam}
-              timeRemaining={
-                phase === 'playing' && settings.turnTimeLimitSeconds > 0
-                  ? turnTimer.timeRemaining
-                  : undefined
-              }
-              isTimerRunning={turnTimer.isRunning}
-            />
-
-            {/* Audio Player / Mystery Card */}
-            <div className="flex flex-col items-center gap-10">
-              {showDraggableCard ? (
-                <motion.div
-                  className="flex flex-col items-center gap-4"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                >
-                  <DraggableSongCard song={currentSong} team={currentTeam} />
-                  {canSkipReady && (
-                    <button
-                      onClick={handleSkip}
-                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border ${
-                        currentTeam === 'A'
-                          ? 'border-primary/20 text-primary/70 hover:bg-primary/10'
-                          : 'border-secondary/20 text-secondary/70 hover:bg-secondary/10'
-                      }`}
-                      style={{ background: 'rgba(49, 52, 66, 0.4)' }}
-                    >
-                      <span className="material-symbols-outlined text-sm">skip_next</span>
-                      Skip (1 token)
-                    </button>
-                  )}
-                </motion.div>
-              ) : (
-                <AudioPlayer
-                  previewUrl={currentSong?.previewUrl ?? null}
-                  albumArtUrl={currentSong?.albumArtUrl ?? ''}
-                  title={currentSong?.title ?? 'Unknown'}
-                  artist={currentSong?.artist ?? 'Unknown'}
-                  revealed={revealed}
-                  clipDuration={settings.clipDurationSeconds}
-                  onSongReady={handleSongReady}
-                  onSkip={handleSkip}
-                  canSkip={canSkip}
-                  team={currentTeam}
+            {isChallenging ? (
+              /* Challenge-placing: show challenger's card */
+              <>
+                <TurnIndicator
+                  currentTeam={challengingTeam}
+                  timeRemaining={undefined}
+                  isTimerRunning={false}
                 />
-              )}
-            </div>
+                <div className="flex flex-col items-center gap-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
+                    Place on Team {lastPlacedTeam}&apos;s timeline
+                  </p>
+                  {lastPlacedSong && (
+                    <DraggableSongCard song={lastPlacedSong} team={challengingTeam} />
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Normal playing: show turn indicator + audio/card */
+              <>
+                <TurnIndicator
+                  currentTeam={currentTeam}
+                  timeRemaining={
+                    phase === 'playing' && settings.turnTimeLimitSeconds > 0
+                      ? turnTimer.timeRemaining
+                      : undefined
+                  }
+                  isTimerRunning={turnTimer.isRunning}
+                />
+                <div className="flex flex-col items-center gap-10">
+                  {showDraggableCard ? (
+                    <motion.div
+                      className="flex flex-col items-center gap-4"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                    >
+                      <DraggableSongCard song={currentSong} team={currentTeam} />
+                      {canSkipReady && (
+                        <button
+                          onClick={handleSkip}
+                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border ${
+                            currentTeam === 'A'
+                              ? 'border-primary/20 text-primary/70 hover:bg-primary/10'
+                              : 'border-secondary/20 text-secondary/70 hover:bg-secondary/10'
+                          }`}
+                          style={{ background: 'rgba(49, 52, 66, 0.4)' }}
+                        >
+                          <span className="material-symbols-outlined text-sm">skip_next</span>
+                          Skip (1 token)
+                        </button>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <AudioPlayer
+                      previewUrl={currentSong?.previewUrl ?? null}
+                      albumArtUrl={currentSong?.albumArtUrl ?? ''}
+                      title={currentSong?.title ?? 'Unknown'}
+                      artist={currentSong?.artist ?? 'Unknown'}
+                      revealed={revealed}
+                      clipDuration={settings.clipDurationSeconds}
+                      onSongReady={handleSongReady}
+                      onSkip={handleSkip}
+                      canSkip={canSkip}
+                      team={currentTeam}
+                    />
+                  )}
+                </div>
+              </>
+            )}
           </section>
 
           {/* RIGHT COLUMN: Team B */}
@@ -399,51 +467,31 @@ export default function GamePage() {
 
         {/* Floating drag overlay that follows the cursor */}
         <DragOverlay dropAnimation={null}>
-          {isDragActive && currentSong ? (
+          {isDragActive && isChallenging && lastPlacedSong ? (
+            <DragOverlayCard song={lastPlacedSong} team={challengingTeam} />
+          ) : isDragActive && currentSong ? (
             <DragOverlayCard song={currentSong} team={currentTeam} />
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      {/* ── Challenge-placing phase: challenger places card on placer's timeline ── */}
-      <AnimatePresence>
-        {phase === 'challenge-placing' && lastPlacedSong && lastPlacedTeam && (
-          <motion.div
-            className="fixed inset-0 z-50 flex flex-col bg-surface-container-lowest"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <div className="sticky top-0 z-30 px-4 pt-4 pb-2">
-              <div className="glass-panel rounded-xl p-4 text-center border border-tertiary/20">
-                <h3 className="text-lg font-bold text-on-surface">
-                  Team {challengingTeam}: Place the card where you think it belongs
-                </h3>
-                <p className="text-sm text-on-surface-variant mt-1">
-                  Drag the card onto Team {lastPlacedTeam}&apos;s timeline
-                </p>
-              </div>
-            </div>
-            <div className="flex-1 px-4 pb-24 overflow-auto">
-              <GameBoard
-                activeTimeline={
-                  (lastPlacedTeam === 'A' ? teamATimeline : teamBTimeline)
-                    .filter((s) => s.spotifyId !== lastPlacedSong.spotifyId)
-                    .map((s, i) => ({ ...s, placedAtIndex: i }))
-                }
-                opponentTimeline={
-                  challengingTeam === 'A' ? teamBTimeline : teamATimeline
-                }
-                currentSong={lastPlacedSong}
-                activeTeam={challengingTeam}
-                onPlaceSong={handleChallengerPlace}
-                songReady={true}
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ── Modal: Guess commit (before reveal) ────────── */}
+      <GuessModal
+        isOpen={phase === 'guess-commit'}
+        mode="commit"
+        placingTeam={placementResult?.placingTeam ?? null}
+        onYes={handleGuessCommitYes}
+        onNo={handleGuessCommitNo}
+      />
+
+      {/* ── Modal: Guess verify (after reveal) ───────────── */}
+      <GuessModal
+        isOpen={phase === 'guess-verify'}
+        mode="verify"
+        placingTeam={placementResult?.placingTeam ?? null}
+        onYes={handleGuessVerifyYes}
+        onNo={handleGuessVerifyNo}
+      />
 
       {/* ── Modal: Challenge window ─────────────────────── */}
       <ChallengeModal

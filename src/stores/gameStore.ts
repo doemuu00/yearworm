@@ -15,6 +15,7 @@ import {
   skipSong as engineSkipSong,
   nextTurn as engineNextTurn,
   resolveUnchallengedPlacement,
+  awardGuessToken as engineAwardGuessToken,
 } from "@/lib/game/engine";
 
 interface GameStoreState extends GameState {
@@ -28,6 +29,9 @@ interface GameStoreState extends GameState {
   // Challenge result (for UI to read after challengePlacement)
   lastChallengerCorrect: boolean | null;
 
+  // Guess state (for token earning via artist/song guess)
+  guessCommitted: boolean;
+
   // Actions
   initGame: (songs: Song[], settings?: GameSettings) => void;
   placeSong: (position: number) => void;
@@ -36,6 +40,9 @@ interface GameStoreState extends GameState {
   nextTurn: () => void;
   setGameState: (state: Partial<GameState>) => void;
   dismissChallenge: () => void;
+  commitGuess: () => void;
+  confirmGuess: () => void;
+  resetGuess: () => void;
 }
 
 function extractGameState(store: GameStoreState): GameState {
@@ -97,6 +104,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   lastPlacedSong: null,
   lastPlacedTeam: null,
   lastChallengerCorrect: null,
+  guessCommitted: false,
   gameLog: [],
   settings: DEFAULT_GAME_SETTINGS,
 
@@ -243,5 +251,21 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       isChallengeable: false,
       lastChallengerCorrect: null,
     });
+  },
+
+  commitGuess: () => {
+    set({ guessCommitted: true });
+  },
+
+  confirmGuess: () => {
+    const store = get();
+    if (!store.guessCommitted || !store.lastPlacedTeam) return;
+    const currentState = extractGameState(store);
+    const newState = engineAwardGuessToken(currentState, store.lastPlacedTeam);
+    set({ ...newState, guessCommitted: false });
+  },
+
+  resetGuess: () => {
+    set({ guessCommitted: false });
   },
 }));

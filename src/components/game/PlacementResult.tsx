@@ -144,7 +144,7 @@ export default function PlacementResult({
     // Scenarios 1 & 2
     showCheck = isCorrect;
     accentColor = isCorrect ? '#22c55e' : '#ef4444';
-    headlineText = isCorrect ? 'Correct! +1 token' : 'Wrong position!';
+    headlineText = isCorrect ? 'Correct placement!' : 'Wrong position!';
     subtitleText = isCorrect
       ? `${teamLabel(placingTeam)} placed it right`
       : 'The song was removed from the timeline';
