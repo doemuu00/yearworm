@@ -13,6 +13,10 @@ const YEAR_RANGE = YEAR_MAX - YEAR_MIN;
 
 const DECADES = [1920, 1930, 1940, 1950, 1960, 1970, 1980, 1990, 2000, 2010, 2020];
 
+/** Minimum gap between card centers (%) to guarantee a visible drop zone */
+const MIN_CENTER_GAP_NORMAL = 15;
+const MIN_CENTER_GAP_COMPACT = 11;
+
 /* ── Props ──────────────────────────────────────────────── */
 
 export interface TimelineProps {
@@ -29,6 +33,54 @@ export interface TimelineProps {
 /** Map a year to a percentage position — newest (2030) at top (0%), oldest (1915) at bottom (100%) */
 function yearToPercent(year: number): number {
   return ((YEAR_MAX - year) / YEAR_RANGE) * 100;
+}
+
+/**
+ * Resolve card positions to prevent overlap.
+ * Takes ideal positions (screen order: top to bottom) and enforces a minimum gap.
+ * Two-pass: top-down push, then bottom-up push, then center the result.
+ */
+function resolvePositions(idealPositions: number[], minGap: number): number[] {
+  if (idealPositions.length === 0) return [];
+  if (idealPositions.length === 1) return [...idealPositions];
+
+  const n = idealPositions.length;
+  const adjusted = [...idealPositions];
+
+  // Pass 1: top-down — push cards down if too close
+  for (let i = 1; i < n; i++) {
+    const minPos = adjusted[i - 1] + minGap;
+    if (adjusted[i] < minPos) {
+      adjusted[i] = minPos;
+    }
+  }
+
+  // Pass 2: bottom-up — push cards up if they overflow past 100%
+  // Clamp the last card to at most 96% (leave room for the bottom edge)
+  const maxBottom = 96;
+  if (adjusted[n - 1] > maxBottom) {
+    adjusted[n - 1] = maxBottom;
+  }
+  for (let i = n - 2; i >= 0; i--) {
+    const maxPos = adjusted[i + 1] - minGap;
+    if (adjusted[i] > maxPos) {
+      adjusted[i] = maxPos;
+    }
+  }
+
+  // Clamp top card to at least 4%
+  if (adjusted[0] < 4) {
+    adjusted[0] = 4;
+    // Re-push down after clamping top
+    for (let i = 1; i < n; i++) {
+      const minPos = adjusted[i - 1] + minGap;
+      if (adjusted[i] < minPos) {
+        adjusted[i] = minPos;
+      }
+    }
+  }
+
+  return adjusted;
 }
 
 /* ── Drop Zone (Stitch style) ────────────────────────── */
@@ -79,6 +131,60 @@ function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }
         </span>
       </div>
     </div>
+  );
+}
+
+/* ── Connecting Line (card displaced from true year) ─── */
+
+interface ConnectingLineProps {
+  idealPercent: number;
+  adjustedPercent: number;
+  team: Team;
+  compact: boolean;
+}
+
+function ConnectingLine({ idealPercent, adjustedPercent, team, compact }: ConnectingLineProps) {
+  const isPrimary = team === 'A';
+  const lineColor = isPrimary
+    ? 'rgba(40, 223, 181, 0.35)'
+    : 'rgba(208, 188, 255, 0.35)';
+  const dotColor = isPrimary
+    ? 'rgba(40, 223, 181, 0.6)'
+    : 'rgba(208, 188, 255, 0.6)';
+  const axisPos = compact ? 30 : 40;
+
+  const topPct = Math.min(idealPercent, adjustedPercent);
+  const heightPct = Math.abs(adjustedPercent - idealPercent);
+
+  return (
+    <>
+      {/* Vertical line along axis from true year to adjusted position */}
+      <div
+        className="absolute pointer-events-none"
+        style={{
+          top: `${topPct}%`,
+          height: `${heightPct}%`,
+          width: 2,
+          ...(isPrimary ? { left: axisPos } : { right: axisPos }),
+          background: lineColor,
+          zIndex: 15,
+        }}
+      />
+      {/* Dot at the true year position */}
+      <div
+        className="absolute pointer-events-none rounded-full"
+        style={{
+          top: `${idealPercent}%`,
+          width: 6,
+          height: 6,
+          transform: 'translate(-50%, -50%)',
+          ...(isPrimary ? { left: axisPos + 1 } : { right: axisPos - 1 }),
+          background: dotColor,
+          boxShadow: `0 0 6px ${dotColor}`,
+          zIndex: 16,
+        }}
+      />
+    </>
   );
 }
 
@@ -227,20 +333,28 @@ export default function Timeline({
     ? ''
     : 'opacity-60 grayscale-[0.3]';
 
-  // Build drop zones in the gaps between placed cards (and above/below the first/last).
-  // Cards are centered on their year position via translateY(-50%). Drop zones must not
-  // overlap cards, so we offset boundaries by half the card height (as a percentage).
-  // Uses solidSorted (excludes ghost card) so the ghost doesn't affect zone boundaries.
-  const CARD_HALF_PCT = compact ? 4.5 : 6.5; // approximate card half-height as % of timeline
+  // ── Compute adjusted positions with minimum spacing ──
+  const CARD_HALF_PCT = compact ? 4.5 : 6.5;
+  const MIN_GAP = compact ? MIN_CENTER_GAP_COMPACT : MIN_CENTER_GAP_NORMAL;
+
+  // Screen order: newest first (top of screen = low %)
+  const screenOrder = [...solidSorted].reverse();
+  const idealPositions = screenOrder.map(s => yearToPercent(s.releaseYear));
+  const adjustedPositions = resolvePositions(idealPositions, MIN_GAP);
+
+  // Map spotifyId → adjusted position for easy lookup
+  const positionMap = new Map<string, { ideal: number; adjusted: number }>();
+  screenOrder.forEach((song, i) => {
+    positionMap.set(song.spotifyId, {
+      ideal: idealPositions[i],
+      adjusted: adjustedPositions[i],
+    });
+  });
+
+  // ── Build drop zones using adjusted positions ──
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && solidSorted.length > 0) {
-    // solidSorted ascending by year. On screen: newest (last) at top (low %), oldest (first) at bottom (high %).
-    const screenOrder = [...solidSorted].reverse(); // newest first (top to bottom)
-    const positions = screenOrder.map((s) => yearToPercent(s.releaseYear));
-
-    // For N cards we create N+1 zones in the gaps between card edges.
-    // Each card occupies [pos - half, pos + half]. Zones fill the remaining space.
-    const edges = positions.map((p) => ({
+    const edges = adjustedPositions.map((p) => ({
       top: Math.max(0, p - CARD_HALF_PCT),
       bottom: Math.min(100, p + CARD_HALF_PCT),
     }));
@@ -348,6 +462,21 @@ export default function Timeline({
             />
           ))}
 
+          {/* ── Connecting lines (displaced cards) ─────── */}
+          {solidSorted.map((song) => {
+            const pos = positionMap.get(song.spotifyId);
+            if (!pos || Math.abs(pos.ideal - pos.adjusted) < 0.5) return null;
+            return (
+              <ConnectingLine
+                key={`line-${song.spotifyId}`}
+                idealPercent={pos.ideal}
+                adjustedPercent={pos.adjusted}
+                team={team}
+                compact={compact}
+              />
+            );
+          })}
+
           {/* ── Ghost card (contested, semi-transparent) ── */}
           {ghostSong && (
             <GhostCard
@@ -360,16 +489,19 @@ export default function Timeline({
           )}
 
           {/* ── Placed cards ────────────────────────────── */}
-          {solidSorted.map((song, i) => (
-            <PlacedCard
-              key={song.spotifyId}
-              song={song}
-              team={team}
-              index={i}
-              compact={compact}
-              topPercent={yearToPercent(song.releaseYear)}
-            />
-          ))}
+          {solidSorted.map((song, i) => {
+            const pos = positionMap.get(song.spotifyId);
+            return (
+              <PlacedCard
+                key={song.spotifyId}
+                song={song}
+                team={team}
+                index={i}
+                compact={compact}
+                topPercent={pos?.adjusted ?? yearToPercent(song.releaseYear)}
+              />
+            );
+          })}
 
           {/* ── Empty state ─────────────────────────────── */}
           {solidSorted.length === 0 && !showDropZones && (
