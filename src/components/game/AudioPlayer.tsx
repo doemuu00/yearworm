@@ -27,7 +27,7 @@ export default function AudioPlayer({
   title,
   artist,
   revealed = false,
-  clipDuration = 15,
+  clipDuration = 30,
   onClipEnd,
   onSongReady,
   onSkip,
