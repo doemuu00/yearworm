@@ -162,23 +162,28 @@ export default function Timeline({
     ? ''
     : 'opacity-60 grayscale-[0.3]';
 
-  // Build drop zones between placed cards using card positions as boundaries.
-  // N cards produce N+1 zones: above first card, between each pair, below last card.
+  // Build drop zones in the gaps between placed cards (and above/below the first/last).
+  // Cards are centered on their year position via translateY(-50%). Drop zones must not
+  // overlap cards, so we offset boundaries by half the card height (as a percentage).
+  const CARD_HALF_PCT = compact ? 4.5 : 6.5; // approximate card half-height as % of timeline
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && sorted.length > 0) {
     // sorted ascending by year. On screen: newest (last) at top (low %), oldest (first) at bottom (high %).
     const screenOrder = [...sorted].reverse(); // newest first (top to bottom)
     const positions = screenOrder.map((s) => yearToPercent(s.releaseYear));
 
-    // Boundaries: top edge, each card position, bottom edge
-    const boundaries = [0, ...positions, 100];
-    for (let i = 0; i < boundaries.length - 1; i++) {
-      const top = boundaries[i];
-      const bottom = boundaries[i + 1];
+    // For N cards we create N+1 zones in the gaps between card edges.
+    // Each card occupies [pos - half, pos + half]. Zones fill the remaining space.
+    const edges = positions.map((p) => ({
+      top: Math.max(0, p - CARD_HALF_PCT),
+      bottom: Math.min(100, p + CARD_HALF_PCT),
+    }));
+
+    for (let i = 0; i <= edges.length; i++) {
+      const top = i === 0 ? 0 : edges[i - 1].bottom;
+      const bottom = i === edges.length ? 100 : edges[i].top;
       const height = bottom - top;
       if (height > 0.5) {
-        // Map back to sorted index: screenOrder[0] = sorted[sorted.length-1], etc.
-        // drop-N means "insert at position N in the sorted array"
         const dropIndex = sorted.length - i;
         dropZones.push({
           id: `drop-${dropIndex}`,
