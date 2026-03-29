@@ -481,7 +481,7 @@ export default function GamePage() {
       <GuessModal
         isOpen={phase === 'guess-commit'}
         mode="commit"
-        placingTeam={placementResult?.placingTeam ?? null}
+        placingTeam={lastPlacedTeam}
         onYes={handleGuessCommitYes}
         onNo={handleGuessCommitNo}
       />
@@ -490,7 +490,7 @@ export default function GamePage() {
       <GuessModal
         isOpen={phase === 'guess-verify'}
         mode="verify"
-        placingTeam={placementResult?.placingTeam ?? null}
+        placingTeam={lastPlacedTeam}
         onYes={handleGuessVerifyYes}
         onNo={handleGuessVerifyNo}
       />
