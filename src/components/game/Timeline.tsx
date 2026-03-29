@@ -105,13 +105,12 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.7, x: mirror ? -16 : 16 }}
-      animate={{ opacity: 1, scale: 1, x: 0 }}
+      initial={{ opacity: 0, scale: 0.7, x: mirror ? -16 : 16, y: '-50%' }}
+      animate={{ opacity: 1, scale: 1, x: 0, y: '-50%' }}
       transition={{ type: 'spring', stiffness: 400, damping: 25, delay: index * 0.04 }}
       className="absolute"
       style={{
         top: `${topPercent}%`,
-        transform: 'translateY(-50%)',
         ...(mirror ? { right: cardOffset, left: 4 } : { left: cardOffset, right: 4 }),
         zIndex: 20 + index,
       }}
