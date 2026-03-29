@@ -74,84 +74,79 @@ export default function LobbyPage() {
   const minStep = isDemo ? 2 : 1;
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-4 py-8">
-      <div className="w-full max-w-lg mx-auto">
+    <div className="relative flex min-h-screen flex-col items-center px-4 py-8 overflow-hidden">
+      {/* Background ambient gradient blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-primary/[0.07] blur-[120px]" />
+        <div className="absolute -bottom-40 -right-40 h-[400px] w-[400px] rounded-full bg-secondary/[0.06] blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[300px] rounded-full bg-tertiary/[0.04] blur-[80px]" />
+      </div>
+
+      <div className="relative z-10 w-full max-w-2xl mx-auto">
         {/* Header */}
         <motion.button
           onClick={() => router.push('/')}
-          className="text-white/40 text-sm hover:text-white/70 transition-colors mb-6 flex items-center gap-1"
+          className="text-on-surface-variant/60 text-sm hover:text-on-surface transition-colors mb-6 flex items-center gap-1.5"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span>
           Back to Home
         </motion.button>
 
         <motion.h1
-          className="text-2xl font-bold text-white mb-8 text-center"
+          className="text-3xl font-display font-extrabold text-on-surface mb-2 text-center"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
           Game Setup
         </motion.h1>
 
-        {/* Step indicator */}
+        {/* Progress bar (Stitch wizard steps) */}
         <motion.div
-          className="flex items-center justify-center gap-2 mb-10"
+          className="mb-10 mt-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          {STEP_LABELS.map((label, i) => {
-            const stepNum = i + 1;
-            const isActive = step === stepNum;
-            const isComplete = step > stepNum;
-            const isSkipped = isDemo && stepNum === 1;
+          {/* Labels above bar */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+              Step {String(step).padStart(2, '0')} &mdash; {STEP_LABELS[step - 1]}
+            </span>
+            {step === 3 && (
+              <span className="text-xs font-bold text-primary">
+                Ready to Play
+              </span>
+            )}
+          </div>
 
-            return (
-              <div key={label} className="flex items-center gap-2">
-                {i > 0 && (
-                  <div
-                    className={`h-px w-8 transition-colors duration-300 ${
-                      isComplete || isActive ? 'bg-[#00d4aa]/60' : 'bg-white/10'
-                    }`}
-                  />
-                )}
-                <div className="flex flex-col items-center gap-1">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 ${
-                      isSkipped
-                        ? 'bg-white/5 text-white/20'
-                        : isActive
-                          ? 'bg-[#00d4aa] text-[#0a0e1a] shadow-md shadow-[#00d4aa]/30'
-                          : isComplete
-                            ? 'bg-[#00d4aa]/20 text-[#00d4aa]'
-                            : 'bg-white/5 text-white/30'
-                    }`}
-                  >
-                    {isComplete ? (
-                      <CheckIcon className="w-4 h-4" />
-                    ) : (
-                      stepNum
-                    )}
-                  </div>
-                  <span
-                    className={`text-[10px] font-medium transition-colors duration-300 ${
-                      isSkipped
-                        ? 'text-white/15'
-                        : isActive
-                          ? 'text-white/80'
-                          : isComplete
-                            ? 'text-white/40'
-                            : 'text-white/20'
-                    }`}
-                  >
-                    {label}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+          {/* Progress bar */}
+          <div className="flex h-1.5 w-full gap-1 rounded-full bg-surface-container-highest">
+            {STEP_LABELS.map((label, i) => {
+              const stepNum = i + 1;
+              const isComplete = step >= stepNum;
+              const isSkipped = isDemo && stepNum === 1;
+
+              // Opacity increases: 40% for step 1, 60% for step 2, 100% for step 3
+              const opacityClass = isSkipped
+                ? 'bg-surface-container-highest'
+                : isComplete
+                  ? stepNum === 1
+                    ? 'bg-primary/40'
+                    : stepNum === 2
+                      ? 'bg-primary/60'
+                      : 'bg-primary'
+                  : 'bg-transparent';
+
+              return (
+                <div
+                  key={label}
+                  className={`h-full w-1/3 rounded-full transition-all duration-500 ${opacityClass}`}
+                />
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Step content with animated transitions */}
@@ -182,22 +177,22 @@ export default function LobbyPage() {
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
                 {/* Playlist summary */}
-                <div className="glass-card rounded-xl p-4 mb-6 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#00d4aa]/10 flex items-center justify-center flex-shrink-0">
-                    <MusicIcon className="w-5 h-5 text-[#00d4aa]" />
+                <div className="glass-card rounded-lg p-5 mb-8 flex items-center gap-4 border border-primary/10">
+                  <div className="w-12 h-12 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                    <span className="material-symbols-outlined text-primary text-xl">music_note</span>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-white truncate">
+                    <p className="text-base font-display font-bold text-on-surface truncate">
                       {playlistName}
                     </p>
-                    <p className="text-xs text-white/40">
+                    <p className="text-sm text-on-surface-variant">
                       {songCount} songs
                     </p>
                   </div>
                   {!isDemo && (
                     <button
                       onClick={() => goToStep(1)}
-                      className="text-xs text-white/40 hover:text-white/70 transition-colors"
+                      className="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider"
                     >
                       Change
                     </button>
@@ -209,7 +204,7 @@ export default function LobbyPage() {
                   onSettingsChange={setSettings}
                 />
 
-                <div className="flex gap-3 mt-8">
+                <div className="flex gap-3 mt-10">
                   {!isDemo && (
                     <Button
                       variant="ghost"
@@ -225,7 +220,7 @@ export default function LobbyPage() {
                     fullWidth
                     onClick={() => goToStep(3)}
                   >
-                    Next
+                    Next: Invite Teams
                   </Button>
                 </div>
               </motion.div>
@@ -248,7 +243,14 @@ export default function LobbyPage() {
                   onTeamBNameChange={setTeamBName}
                 />
 
-                <div className="flex gap-3 mt-8">
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-on-surface-variant mb-8">
+                    <span className="material-symbols-outlined text-[16px] align-text-bottom mr-1">info</span>
+                    Name your teams and get ready to play!
+                  </p>
+                </div>
+
+                <div className="flex gap-3">
                   <Button
                     variant="ghost"
                     size="md"
@@ -271,43 +273,5 @@ export default function LobbyPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-// --- Inline icons ---
-
-function ArrowLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 20 20" fill="currentColor">
-      <path
-        fillRule="evenodd"
-        d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-        clipRule="evenodd"
-      />
-    </svg>
-  );
-}
-
-function MusicIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"
-      />
-    </svg>
   );
 }

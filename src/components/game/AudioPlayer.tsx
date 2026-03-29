@@ -171,238 +171,143 @@ export default function AudioPlayer({
   const timeRemaining = Math.max(0, clipDuration - elapsed);
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-6">
       <AnimatePresence mode="wait">
         {state === 'ready' ? (
-          /* ── Ready state: hidden — GameBoard shows the draggable card */
+          /* ── Ready state: hidden -- GameBoard shows the draggable card */
           null
         ) : (
-          /* ── Idle / Playing state: circular player ──────── */
+          /* ── Idle / Playing state: circular player with SVG progress ring ── */
           <motion.div
             key="circle"
             layoutId="player-shape"
-            className="relative"
+            className="relative group"
             style={{ width: 160, height: 160 }}
             initial={{ borderRadius: 80 }}
             animate={{ borderRadius: 80 }}
           >
-            {/* Blurred album art background */}
-            <div
-              className="absolute -inset-4 rounded-full bg-cover bg-center"
-              style={{
-                backgroundImage: `url(${albumArtUrl})`,
-                filter: 'blur(20px)',
-                opacity: state === 'playing' || state === 'paused' ? 0.5 : 0.3,
-              }}
-            />
-
-            {/* Progress ring */}
-            <svg
-              className="absolute inset-0"
-              width="160"
-              height="160"
-              viewBox="0 0 120 120"
-            >
+            {/* SVG progress ring */}
+            <svg className="w-40 h-40 transform -rotate-90 absolute inset-0">
               {/* Track ring */}
               <circle
-                cx="60"
-                cy="60"
+                className="text-surface-container-highest"
+                cx="80"
+                cy="80"
                 r={radius}
-                fill="none"
-                stroke="rgba(255,255,255,0.08)"
+                fill="transparent"
+                stroke="currentColor"
                 strokeWidth="4"
               />
               {/* Progress arc */}
               {(state === 'playing' || state === 'paused') && (
                 <motion.circle
-                  cx="60"
-                  cy="60"
+                  className="text-primary"
+                  cx="80"
+                  cy="80"
                   r={radius}
-                  fill="none"
-                  stroke={teamColor}
+                  fill="transparent"
+                  stroke="currentColor"
                   strokeWidth="4"
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
-                  transform="rotate(-90 60 60)"
                   style={{
-                    filter: `drop-shadow(0 0 4px ${teamColor}80)`,
+                    filter: 'drop-shadow(0 0 12px rgba(40,223,181,0.5))',
                   }}
                 />
               )}
             </svg>
 
-            {/* Album art center */}
-            <div className="absolute inset-3 overflow-hidden rounded-full">
-              <div
-                className="h-full w-full bg-cover bg-center"
-                style={{
-                  backgroundImage: `url(${albumArtUrl})`,
-                  filter: state === 'playing' || state === 'paused' ? 'blur(2px)' : 'blur(6px)',
-                  transition: 'filter 0.4s ease',
-                }}
-              />
-              {/* Dark overlay */}
-              {!revealed && (
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      state === 'playing' || state === 'paused'
-                        ? 'rgba(0,0,0,0.35)'
-                        : 'rgba(0,0,0,0.55)',
-                    transition: 'background 0.4s ease',
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Tap target */}
+            {/* Center play button */}
             <motion.button
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-full"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-on-primary-container flex items-center justify-center text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)] active:scale-95 transition-all duration-200"
               onClick={handleTap}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              style={{ cursor: 'pointer' }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-              <motion.div
-                className="flex items-center justify-center rounded-full"
-                style={{
-                  width: 56,
-                  height: 56,
-                  background: 'rgba(0,0,0,0.5)',
-                  backdropFilter: 'blur(8px)',
-                  border: `1.5px solid ${state === 'playing' ? `${teamColor}66` : 'rgba(255,255,255,0.2)'}`,
-                }}
+              <span
+                className="material-symbols-outlined text-6xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
               >
-                {state === 'playing' ? (
-                  /* Pause icon */
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <rect x="6" y="4" width="4" height="16" rx="1" />
-                    <rect x="14" y="4" width="4" height="16" rx="1" />
-                  </svg>
-                ) : (
-                  /* Play icon */
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" />
-                  </svg>
-                )}
-              </motion.div>
-
+                {state === 'playing' ? 'pause' : 'play_arrow'}
+              </span>
             </motion.button>
 
-            {/* Pulsing ring — idle: gentle invite; playing: beat pulse */}
+            {/* Pulsing ring -- idle */}
             <AnimatePresence>
               {state === 'idle' && !noPreviewFlash && (
                 <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{ border: '2px solid rgba(255,255,255,0.15)' }}
+                  className="absolute inset-0 rounded-full pointer-events-none border-2 border-primary/20"
                   initial={{ scale: 1, opacity: 0.4 }}
-                  animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.1, 0.4] }}
-                  transition={{
-                    duration: 2.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut',
-                  }}
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.1, 0.4] }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
                   exit={{ opacity: 0, scale: 1.1 }}
                 />
               )}
               {state === 'playing' && (
-                <>
-                  <motion.div
-                    className="absolute inset-0 rounded-full pointer-events-none"
-                    style={{ border: `3px solid ${teamColor}80` }}
-                    initial={{ scale: 1, opacity: 0.8 }}
-                    animate={{
-                      scale: [1, 1.15, 1],
-                      opacity: [0.8, 0, 0.8],
-                    }}
-                    transition={{
-                      duration: 1.0,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                    exit={{ opacity: 0, scale: 1.15 }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 rounded-full pointer-events-none"
-                    style={{ border: `2px solid ${teamColor}40` }}
-                    initial={{ scale: 1, opacity: 0.4 }}
-                    animate={{
-                      scale: [1, 1.25, 1],
-                      opacity: [0.4, 0, 0.4],
-                    }}
-                    transition={{
-                      duration: 1.0,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                      delay: 0.3,
-                    }}
-                    exit={{ opacity: 0, scale: 1.25 }}
-                  />
-                </>
+                <motion.div
+                  className="absolute inset-0 rounded-full pointer-events-none border-2 border-primary/40"
+                  initial={{ scale: 1, opacity: 0.6 }}
+                  animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 1.0, repeat: Infinity, ease: 'easeInOut' }}
+                  exit={{ opacity: 0, scale: 1.15 }}
+                />
               )}
             </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Controls: play/pause + stop + skip (icon-only) */}
+      {/* Media controls -- Stitch style: glass circles */}
       <AnimatePresence>
         {(state === 'playing' || state === 'paused') && (
           <motion.div
-            className="flex items-center gap-3"
+            className="flex items-center gap-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             {/* Play / Pause */}
             <motion.button
-              className="flex items-center justify-center rounded-full transition-colors"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-on-surface hover:bg-white/10 transition-all active:scale-90 border border-white/5"
               style={{
-                width: 40, height: 40,
-                background: 'rgba(255,255,255,0.08)',
-                color: 'rgba(255,255,255,0.8)',
-                border: '1px solid rgba(255,255,255,0.15)',
+                background: 'rgba(49, 52, 66, 0.4)',
+                backdropFilter: 'blur(20px)',
               }}
               onClick={handleTap}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title={state === 'playing' ? 'Pause' : 'Resume'}
             >
-              {state === 'playing' ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1" /><rect x="14" y="4" width="4" height="16" rx="1" /></svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.14v13.72a1 1 0 001.5.86l11-6.86a1 1 0 000-1.72l-11-6.86a1 1 0 00-1.5.86z" /></svg>
-              )}
+              <span className="material-symbols-outlined text-2xl">
+                {state === 'playing' ? 'pause' : 'play_arrow'}
+              </span>
             </motion.button>
 
             {/* Stop / Place */}
             <motion.button
-              className="flex items-center justify-center rounded-full transition-colors"
+              className="w-14 h-14 rounded-full flex items-center justify-center text-on-surface hover:text-error transition-all active:scale-90 border border-white/5"
               style={{
-                width: 40, height: 40,
-                background: `${teamColor}22`,
-                color: teamColor,
-                border: `1px solid ${teamColor}44`,
+                background: 'rgba(49, 52, 66, 0.4)',
+                backdropFilter: 'blur(20px)',
               }}
               onClick={handlePlaceNow}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title="Stop & place song"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="16" height="16" rx="2" /></svg>
+              <span className="material-symbols-outlined text-2xl">stop</span>
             </motion.button>
 
             {/* Skip */}
             {onSkip && (
               <motion.button
-                className="flex items-center justify-center rounded-full transition-colors"
+                className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 border border-white/5"
                 style={{
-                  width: 40, height: 40,
-                  background: canSkip ? 'rgba(255,255,255,0.05)' : 'transparent',
-                  color: canSkip ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.12)',
-                  border: `1px solid ${canSkip ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.05)'}`,
+                  background: 'rgba(49, 52, 66, 0.4)',
+                  backdropFilter: 'blur(20px)',
+                  color: canSkip ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)',
+                  opacity: canSkip ? 1 : 0.4,
                   cursor: canSkip ? 'pointer' : 'not-allowed',
                 }}
                 onClick={canSkip ? onSkip : undefined}
@@ -410,12 +315,12 @@ export default function AudioPlayer({
                 whileTap={canSkip ? { scale: 0.9 } : undefined}
                 title={canSkip ? 'Skip (1 token)' : 'Not enough tokens'}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 4l10 8-10 8V4z" fill="currentColor" /><line x1="19" y1="5" x2="19" y2="19" /></svg>
+                <span className="material-symbols-outlined text-2xl">skip_next</span>
               </motion.button>
             )}
 
             {/* Time */}
-            <span className="text-[10px] font-mono text-white/25">
+            <span className="text-xs font-mono text-on-surface-variant/50">
               {Math.ceil(timeRemaining)}s
             </span>
           </motion.div>
@@ -432,8 +337,8 @@ export default function AudioPlayer({
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.3 }}
           >
-            <p className="text-sm font-bold text-white">{title}</p>
-            <p className="text-xs text-white/50">{artist}</p>
+            <p className="text-sm font-bold font-headline text-on-surface">{title}</p>
+            <p className="text-xs text-on-surface-variant">{artist}</p>
           </motion.div>
         )}
       </AnimatePresence>

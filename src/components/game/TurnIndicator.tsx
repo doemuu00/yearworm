@@ -15,85 +15,53 @@ export default function TurnIndicator({
   timeRemaining,
   isTimerRunning = false,
 }: TurnIndicatorProps) {
-  const color =
-    currentTeam === 'A'
-      ? DESIGN_TOKENS.colors.teamA
-      : DESIGN_TOKENS.colors.teamB;
-  const glowClass = currentTeam === 'A' ? 'glow-green' : 'glow-purple';
-  const label = currentTeam === 'A' ? "Team A's Turn" : "Team B's Turn";
+  const isPrimary = currentTeam === 'A';
+  const colorClass = isPrimary ? 'text-primary' : 'text-secondary';
+  const glowClass = isPrimary ? 'vibe-glow' : 'glow-secondary';
+  const vibeLabel = isPrimary ? "TEAM A'S VIBE" : "TEAM B'S VIBE";
   const isLow = timeRemaining !== undefined && timeRemaining <= 5;
 
   return (
-    <motion.div
-      className="glass-card flex items-center gap-3 px-4 py-2.5"
-      layout
-    >
-      {/* Pulsing dot */}
-      <motion.div
-        className="relative flex-shrink-0"
-        style={{ width: 12, height: 12 }}
-      >
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{ backgroundColor: color }}
-          animate={{
-            boxShadow: [
-              `0 0 4px ${color}88`,
-              `0 0 12px ${color}cc`,
-              `0 0 4px ${color}88`,
-            ],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-        <motion.div
-          className="absolute inset-0 rounded-full"
-          style={{ backgroundColor: color }}
-          animate={{ scale: [1, 1.6, 1], opacity: [0.6, 0, 0.6] }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </motion.div>
+    <div className="text-center py-2">
+      {/* Active turn label */}
+      <p className={`text-xs font-bold ${isPrimary ? 'text-primary/60' : 'text-secondary/60'} tracking-[0.2em] uppercase mb-1`}>
+        Active Turn
+      </p>
 
-      {/* Team label */}
+      {/* Vibe headline */}
       <AnimatePresence mode="wait">
-        <motion.span
+        <motion.h1
           key={currentTeam}
-          className={`text-sm font-bold ${glowClass}`}
-          style={{ color }}
+          className={`font-headline font-black tracking-tighter text-3xl md:text-5xl ${colorClass} ${glowClass} uppercase italic`}
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.25 }}
         >
-          {label}
-        </motion.span>
+          {vibeLabel}
+        </motion.h1>
       </AnimatePresence>
 
       {/* Timer */}
       {timeRemaining !== undefined && (
         <motion.div
-          className="ml-auto flex items-center gap-1.5"
+          className="mt-2 flex items-center justify-center gap-1.5"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          {/* Timer icon */}
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={isLow ? '#ef4444' : 'rgba(255,255,255,0.4)'}
-            strokeWidth="2"
-            strokeLinecap="round"
+          <span
+            className="material-symbols-outlined text-sm"
+            style={{
+              color: isLow ? '#ef4444' : 'var(--color-on-surface-variant)',
+            }}
           >
-            <circle cx="12" cy="13" r="8" />
-            <path d="M12 9v4l2 2" />
-            <path d="M9 2h6" />
-          </svg>
+            timer
+          </span>
 
           <motion.span
             className="font-mono text-sm font-bold"
             style={{
-              color: isLow ? '#ef4444' : 'rgba(255,255,255,0.7)',
+              color: isLow ? '#ef4444' : 'var(--color-on-surface-variant)',
               textShadow: isLow ? '0 0 8px rgba(239,68,68,0.5)' : 'none',
             }}
             animate={
@@ -111,6 +79,6 @@ export default function TurnIndicator({
           </motion.span>
         </motion.div>
       )}
-    </motion.div>
+    </div>
   );
 }

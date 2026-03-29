@@ -76,9 +76,9 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
 export const DESIGN_TOKENS = {
   colors: {
     background: "#0a0e1a",
-    teamA: "#00d4aa",
-    teamB: "#8b5cf6",
-    gold: "#f59e0b",
-    white: "#ffffff",
+    teamA: "#28dfb5",
+    teamB: "#d0bcff",
+    gold: "#f3c01a",
+    white: "#dfe2f3",
   },
 } as const;
