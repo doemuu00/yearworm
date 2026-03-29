@@ -135,13 +135,13 @@ export default function LobbyPage() {
                 <div className="flex h-1.5 w-full gap-1 rounded-full bg-surface-container-highest">
                   {labels.map((label, i) => {
                     const segmentStep = i + 1;
-                    const isComplete = displayStep >= segmentStep;
+                    const isCurrent = displayStep === segmentStep;
 
                     return (
                       <div
                         key={label}
-                        className={`h-full rounded-full transition-all duration-500 ${isComplete ? 'bg-primary' : 'bg-transparent'}`}
-                        style={{ width: `${100 / totalSteps}%`, opacity: isComplete ? (segmentStep === totalSteps ? 1 : 0.6) : undefined }}
+                        className={`h-full rounded-full transition-all duration-500 ${isCurrent ? 'bg-primary' : 'bg-transparent'}`}
+                        style={{ width: `${100 / totalSteps}%` }}
                       />
                     );
                   })}
