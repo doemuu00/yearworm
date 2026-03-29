@@ -268,6 +268,7 @@ export default function GamePage() {
   const canSkip =
     phase === 'playing' &&
     currentTeamTokens >= (settings.tokensToSkip ?? 1);
+  const canSkipReady = canSkip || (songReady && currentTeamTokens >= (settings.tokensToSkip ?? 1));
 
   const showDraggableCard = songReady && currentSong;
 
@@ -334,11 +335,26 @@ export default function GamePage() {
             <div className="flex flex-col items-center gap-10">
               {showDraggableCard ? (
                 <motion.div
+                  className="flex flex-col items-center gap-4"
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                 >
                   <DraggableSongCard song={currentSong} team={currentTeam} />
+                  {canSkipReady && (
+                    <button
+                      onClick={handleSkip}
+                      className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border ${
+                        currentTeam === 'A'
+                          ? 'border-primary/20 text-primary/70 hover:bg-primary/10'
+                          : 'border-secondary/20 text-secondary/70 hover:bg-secondary/10'
+                      }`}
+                      style={{ background: 'rgba(49, 52, 66, 0.4)' }}
+                    >
+                      <span className="material-symbols-outlined text-sm">skip_next</span>
+                      Skip (1 token)
+                    </button>
+                  )}
                 </motion.div>
               ) : (
                 <AudioPlayer
