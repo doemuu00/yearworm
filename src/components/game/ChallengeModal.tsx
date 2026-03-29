@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Team, PlacedSong } from '@/lib/game/types';
-import { DESIGN_TOKENS } from '@/lib/game/types';
 
 interface ChallengeModalProps {
   isOpen: boolean;
@@ -23,11 +22,6 @@ export default function ChallengeModal({
   onChallenge,
   onDismiss,
 }: ChallengeModalProps) {
-  const challengeColor =
-    challengingTeam === 'A'
-      ? DESIGN_TOKENS.colors.teamA
-      : DESIGN_TOKENS.colors.teamB;
-
   // Lock scroll
   useEffect(() => {
     if (isOpen) {
@@ -61,51 +55,47 @@ export default function ChallengeModal({
 
           {/* Modal card */}
           <motion.div
-            className="glass-card relative z-10 w-full max-w-sm p-6 text-center shadow-2xl"
-            style={{
-              borderColor: canChallenge ? `${challengeColor}33` : 'rgba(255,255,255,0.08)',
-            }}
+            className="glass-panel relative z-10 w-full max-w-sm rounded-2xl p-6 border border-tertiary/30 shadow-[0_20px_50px_rgba(0,0,0,0.6)] flex flex-col items-center gap-4"
             initial={{ opacity: 0, scale: 0.9, y: 24 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 24 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-1 text-lg font-bold text-white">
-              Challenge?
-            </h3>
-            <p className="mb-4 text-sm text-white/50">
-              {placingTeam
-                ? `Team ${placingTeam} placed a song. Do you want to challenge?`
-                : 'A song has been placed. Do you want to challenge?'}
-            </p>
+            {/* Header */}
+            <div className="flex items-center gap-2 text-tertiary">
+              <span
+                className="material-symbols-outlined text-2xl"
+                style={{ fontVariationSettings: "'FILL' 1" }}
+              >
+                warning
+              </span>
+              <span className="font-headline font-bold text-lg tracking-tight">
+                {canChallenge ? 'Challenge? (1 token)' : 'Not enough tokens'}
+              </span>
+            </div>
 
-            {/* Action buttons */}
-            <div className="flex gap-2">
-              <motion.button
-                className="flex-1 rounded-xl px-4 py-3 text-sm font-bold transition-colors"
-                style={{
-                  backgroundColor: canChallenge ? `${challengeColor}22` : 'rgba(255,255,255,0.05)',
-                  color: canChallenge ? challengeColor : 'rgba(255,255,255,0.25)',
-                  border: `1.5px solid ${canChallenge ? `${challengeColor}44` : 'rgba(255,255,255,0.08)'}`,
-                  cursor: canChallenge ? 'pointer' : 'not-allowed',
-                }}
+            {placingTeam && (
+              <p className="text-sm text-on-surface-variant text-center">
+                Team {placingTeam} placed a song. Team {challengingTeam}, do you want to challenge?
+              </p>
+            )}
+
+            {/* Buttons */}
+            <div className="flex gap-4 w-full">
+              <button
+                className="flex-1 py-3.5 bg-tertiary text-on-tertiary font-bold rounded-xl active:scale-95 transition-transform shadow-[0_0_20px_rgba(243,192,26,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
                 onClick={canChallenge ? onChallenge : undefined}
-                whileHover={canChallenge ? { scale: 1.02, backgroundColor: `${challengeColor}33` } : undefined}
-                whileTap={canChallenge ? { scale: 0.97 } : undefined}
                 disabled={!canChallenge}
               >
-                {canChallenge ? 'Challenge! (1 token)' : 'Not enough tokens'}
-              </motion.button>
-              <motion.button
-                className="flex-1 rounded-xl border-1.5 border-white/10 px-4 py-3 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/80"
+                Challenge!
+              </button>
+              <button
+                className="flex-1 py-3.5 bg-surface-bright/40 text-on-surface font-bold rounded-xl active:scale-95 transition-transform border border-white/5"
                 onClick={onDismiss}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                style={{ border: '1.5px solid rgba(255,255,255,0.1)' }}
               >
                 Let it stand
-              </motion.button>
+              </button>
             </div>
           </motion.div>
         </motion.div>

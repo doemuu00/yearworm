@@ -14,14 +14,13 @@ interface ScoreBoardProps {
   teamBTokens: number;
 }
 
-function TeamPanel({
+export function TeamPanel({
   label,
   team,
   score,
   tokens,
   cardsToWin,
   isActive,
-  color,
   align,
 }: {
   label: string;
@@ -30,86 +29,53 @@ function TeamPanel({
   tokens: number;
   cardsToWin: number;
   isActive: boolean;
-  color: string;
   align: 'left' | 'right';
 }) {
-  const progress = Math.min(score / cardsToWin, 1);
+  const isPrimary = team === 'A';
+  const borderClass = isPrimary ? 'border-primary/20' : 'border-secondary/20';
+  const bgClass = isPrimary ? 'bg-primary/5' : 'bg-secondary/5';
+  const labelClass = isPrimary
+    ? 'font-headline font-bold text-primary tracking-wide text-xs uppercase'
+    : 'font-headline font-bold text-secondary tracking-wide text-xs uppercase';
+  const scoreColor = isPrimary ? 'text-primary' : 'text-secondary';
+  const targetColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
 
   return (
     <motion.div
-      className="glass-card relative flex-1 overflow-hidden px-3 py-2.5"
+      className={`glass-panel relative flex-1 overflow-hidden rounded-xl p-4 border ${borderClass} ${bgClass} ${
+        !isActive ? 'opacity-80' : ''
+      }`}
+      style={{
+        background: 'rgba(49, 52, 66, 0.4)',
+        backdropFilter: 'blur(20px)',
+      }}
       animate={{
-        borderColor: isActive ? `${color}44` : 'rgba(255,255,255,0.08)',
-        boxShadow: isActive
-          ? `0 0 16px ${color}22, inset 0 0 12px ${color}08`
-          : '0 0 0 transparent',
+        opacity: isActive ? 1 : 0.8,
       }}
       transition={{ duration: 0.4 }}
     >
-      {/* Active indicator bar */}
-      {isActive && (
-        <motion.div
-          className="absolute top-0 left-0 right-0 h-0.5"
-          style={{ backgroundColor: color }}
-          layoutId="activeTeamBar"
-          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-        />
-      )}
-
-      {/* Header row */}
       <div
-        className="flex items-center justify-between mb-1.5"
+        className="flex items-center justify-between"
         style={{ flexDirection: align === 'right' ? 'row-reverse' : 'row' }}
       >
-        <span
-          className="text-xs font-bold uppercase tracking-wider"
-          style={{ color: isActive ? color : 'rgba(255,255,255,0.5)' }}
-        >
-          {label}
-        </span>
-        <TokenDisplay tokens={tokens} team={team} />
-      </div>
-
-      {/* Score */}
-      <div
-        className="flex items-baseline gap-1 mb-2"
-        style={{
-          justifyContent: align === 'right' ? 'flex-end' : 'flex-start',
-        }}
-      >
-        <motion.span
-          className="text-2xl font-black"
-          style={{
-            color,
-            textShadow: isActive ? `0 0 12px ${color}66` : 'none',
-          }}
-          key={score}
-          initial={{ scale: 1.3, opacity: 0.5 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        >
-          {score}
-        </motion.span>
-        <span className="text-xs text-white/30 font-medium">
-          / {cardsToWin}
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div
-        className="h-1.5 rounded-full overflow-hidden"
-        style={{ backgroundColor: `${color}15` }}
-      >
-        <motion.div
-          className="h-full rounded-full"
-          style={{
-            backgroundColor: color,
-            boxShadow: `0 0 8px ${color}66`,
-          }}
-          initial={false}
-          animate={{ width: `${progress * 100}%` }}
-          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        />
+        {/* Left: team info */}
+        <div className="flex flex-col gap-2">
+          <div>
+            <h2 className={labelClass}>{label}</h2>
+            <p className="text-3xl font-black font-headline text-on-surface leading-none mt-1">
+              <motion.span
+                key={score}
+                initial={{ scale: 1.3, opacity: 0.5 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              >
+                {score}
+              </motion.span>
+              <span className={`text-xl font-bold italic ${targetColor}`}>/{cardsToWin}</span>
+            </p>
+          </div>
+          <TokenDisplay tokens={tokens} team={team} />
+        </div>
       </div>
     </motion.div>
   );
@@ -124,7 +90,7 @@ export default function ScoreBoard({
   teamBTokens,
 }: ScoreBoardProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex gap-3">
       <TeamPanel
         label="Team A"
         team="A"
@@ -132,7 +98,6 @@ export default function ScoreBoard({
         tokens={teamATokens}
         cardsToWin={cardsToWin}
         isActive={currentTeam === 'A'}
-        color={DESIGN_TOKENS.colors.teamA}
         align="left"
       />
       <TeamPanel
@@ -142,7 +107,6 @@ export default function ScoreBoard({
         tokens={teamBTokens}
         cardsToWin={cardsToWin}
         isActive={currentTeam === 'B'}
-        color={DESIGN_TOKENS.colors.teamB}
         align="right"
       />
     </div>

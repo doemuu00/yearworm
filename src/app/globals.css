@@ -1,12 +1,94 @@
 @import "tailwindcss";
 
 @theme inline {
+  /* ── Existing tokens (preserved) ──────────────────────── */
   --color-navy: #0a0e1a;
   --color-accent-green: #00d4aa;
   --color-accent-purple: #8b5cf6;
   --color-gold: #f59e0b;
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system,
-    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* ── Stitch: Font families ───────────────────────────── */
+  --font-display: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-headline: var(--font-jakarta), "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-vietnam), "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-vietnam), "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+  --font-label: var(--font-vietnam), "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+
+  /* ── Stitch: Primary ─────────────────────────────────── */
+  --color-primary: #28dfb5;
+  --color-primary-container: #00120c;
+  --color-primary-fixed: #55fcd0;
+  --color-primary-fixed-dim: #28dfb5;
+  --color-on-primary: #00382b;
+  --color-on-primary-container: #008c6f;
+  --color-on-primary-fixed: #002118;
+  --color-on-primary-fixed-variant: #00513f;
+  --color-inverse-primary: #006b55;
+
+  /* ── Stitch: Secondary ───────────────────────────────── */
+  --color-secondary: #d0bcff;
+  --color-secondary-container: #571bc1;
+  --color-secondary-fixed: #e9ddff;
+  --color-secondary-fixed-dim: #d0bcff;
+  --color-on-secondary: #3c0091;
+  --color-on-secondary-container: #c4abff;
+  --color-on-secondary-fixed: #23005c;
+  --color-on-secondary-fixed-variant: #5516be;
+
+  /* ── Stitch: Tertiary ────────────────────────────────── */
+  --color-tertiary: #f3c01a;
+  --color-tertiary-container: #140d00;
+  --color-tertiary-fixed: #ffdf93;
+  --color-tertiary-fixed-dim: #f3c01a;
+  --color-on-tertiary: #3e2e00;
+  --color-on-tertiary-container: #997700;
+  --color-on-tertiary-fixed: #241a00;
+  --color-on-tertiary-fixed-variant: #594400;
+
+  /* ── Stitch: Error ───────────────────────────────────── */
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  --color-on-error: #690005;
+  --color-on-error-container: #ffdad6;
+
+  /* ── Stitch: Surface ─────────────────────────────────── */
+  --color-background: #0f131f;
+  --color-on-background: #dfe2f3;
+  --color-surface: #0f131f;
+  --color-surface-dim: #0f131f;
+  --color-surface-bright: #353946;
+  --color-surface-tint: #28dfb5;
+  --color-surface-variant: #313442;
+  --color-surface-container: #1b1f2c;
+  --color-surface-container-high: #262a37;
+  --color-surface-container-highest: #313442;
+  --color-surface-container-low: #171b28;
+  --color-surface-container-lowest: #0a0e1a;
+  --color-on-surface: #dfe2f3;
+  --color-on-surface-variant: #c7c6cc;
+
+  /* ── Stitch: Outline ─────────────────────────────────── */
+  --color-outline: #909096;
+  --color-outline-variant: #46464c;
+
+  /* ── Stitch: Inverse ─────────────────────────────────── */
+  --color-inverse-surface: #dfe2f3;
+  --color-inverse-on-surface: #2c303d;
+
+  /* ── Stitch: Border radii ────────────────────────────── */
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+}
+
+/* ── Material Symbols defaults ────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
 }
 
 /* ── Base ──────────────────────────────────────────────── */
@@ -15,9 +97,9 @@ html {
 }
 
 body {
-  background: #0a0e1a;
-  color: #ffffff;
-  font-family: var(--font-sans);
+  background: var(--color-surface-lowest);
+  color: var(--color-on-surface);
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -41,46 +123,93 @@ body {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Firefox */
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
-/* ── Glassmorphism utilities ───────────────────────────── */
+/* ── Glassmorphism utilities (updated per Stitch) ──────── */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(49, 52, 66, 0.6);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(70, 70, 76, 0.15);
 }
 
 .glass-strong {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(49, 52, 66, 0.8);
+  backdrop-filter: blur(40px) saturate(1.3);
+  -webkit-backdrop-filter: blur(40px) saturate(1.3);
+  border: 1px solid rgba(70, 70, 76, 0.2);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
+  background: rgba(49, 52, 66, 0.6);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgba(70, 70, 76, 0.15);
+  border-radius: 2rem;
 }
 
-/* ── Glow effects ──────────────────────────────────────── */
-.glow-green {
-  text-shadow: 0 0 20px rgba(0, 212, 170, 0.5), 0 0 40px rgba(0, 212, 170, 0.2);
+/* ── Neon glow (Stitch home screen) ───────────────────── */
+.neon-glow-primary {
+  text-shadow: 0 0 10px rgba(40, 223, 181, 0.5), 0 0 20px rgba(40, 223, 181, 0.3);
 }
 
-.glow-purple {
-  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(139, 92, 246, 0.2);
+/* ── Floating music note (Stitch home screen) ────────── */
+.music-note {
+  position: absolute;
+  opacity: 0.15;
+  pointer-events: none;
 }
 
-.glow-gold {
-  text-shadow: 0 0 20px rgba(245, 158, 11, 0.5), 0 0 40px rgba(245, 158, 11, 0.2);
+/* ── Glow effects (updated per Stitch palette) ─────────── */
+.glow-green,
+.glow-primary {
+  text-shadow: 0 0 20px rgba(40, 223, 181, 0.5), 0 0 40px rgba(40, 223, 181, 0.2);
+}
+
+.glow-purple,
+.glow-secondary {
+  text-shadow: 0 0 20px rgba(208, 188, 255, 0.5), 0 0 40px rgba(208, 188, 255, 0.2);
+}
+
+.glow-gold,
+.glow-tertiary {
+  text-shadow: 0 0 20px rgba(243, 192, 26, 0.5), 0 0 40px rgba(243, 192, 26, 0.2);
+}
+
+/* ── Tinted glow shadows (Stitch) ──────────────────────── */
+.shadow-primary-glow {
+  box-shadow: 0px 12px 32px rgba(40, 223, 181, 0.08);
+}
+
+.shadow-secondary-glow {
+  box-shadow: 0px 12px 32px rgba(208, 188, 255, 0.08);
+}
+
+.shadow-tertiary-glow {
+  box-shadow: 0px 12px 32px rgba(243, 192, 26, 0.08);
+}
+
+/* ── Token shine (Stitch) ──────────────────────────────── */
+.token-shine {
+  box-shadow: 0 0 4px rgba(255, 223, 147, 0.6);
+}
+
+/* ── CTA gradient (Stitch) ─────────────────────────────── */
+.btn-cta-gradient {
+  background: linear-gradient(45deg, #28dfb5, #008c6f);
+}
+
+.btn-cta-gradient:hover {
+  background: linear-gradient(45deg, #33e9bf, #009a7a);
+  box-shadow: 0 0 24px rgba(40, 223, 181, 0.3);
+}
+
+/* ── Ghost border (Stitch accessibility) ───────────────── */
+.ghost-border {
+  border: 1px solid rgba(70, 70, 76, 0.15);
 }
 
 /* ── Slider ───────────────────────────────────────────── */
@@ -99,23 +228,46 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #00d4aa;
+  background: #28dfb5;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 212, 170, 0.4);
+  box-shadow: 0 0 10px rgba(40, 223, 181, 0.4);
   border: 2px solid #0a0e1a;
   transition: box-shadow 0.2s;
 }
 
 .slider::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 16px rgba(0, 212, 170, 0.6);
+  box-shadow: 0 0 16px rgba(40, 223, 181, 0.6);
 }
 
 .slider::-moz-range-thumb {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #00d4aa;
+  background: #28dfb5;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 212, 170, 0.4);
+  box-shadow: 0 0 10px rgba(40, 223, 181, 0.4);
   border: 2px solid #0a0e1a;
+}
+
+/* ── Glass panel (Stitch game board) ─────────────────── */
+.glass-panel {
+  background: rgba(49, 52, 66, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* ── Shimmer effect (mystery card) ───────────────────── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
+  background-size: 200% 100%;
+}
+
+/* ── Vibe glow (turn indicator) ──────────────────────── */
+.vibe-glow {
+  text-shadow: 0 0 20px rgba(40, 223, 181, 0.4);
 }

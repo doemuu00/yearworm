@@ -3,6 +3,16 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from '@dnd-kit/core';
 
 import { useGame } from '@/hooks/useGame';
 import { useGameStore } from '@/stores/gameStore';
@@ -11,20 +21,19 @@ import { useAudio } from '@/hooks/useAudio';
 
 import AudioPlayer from '@/components/game/AudioPlayer';
 import GameBoard from '@/components/game/GameBoard';
+import { DraggableSongCard, DragOverlayCard } from '@/components/game/GameBoard';
+import Timeline from '@/components/game/Timeline';
 import TurnIndicator from '@/components/game/TurnIndicator';
-import ScoreBoard from '@/components/game/ScoreBoard';
+import { TeamPanel } from '@/components/game/ScoreBoard';
 import ChallengeModal from '@/components/game/ChallengeModal';
 import PlacementResult from '@/components/game/PlacementResult';
 import WinScreen from '@/components/game/WinScreen';
 import PassAndPlayInterstitial from '@/components/game/PassAndPlayInterstitial';
+import TopAppBar from '@/components/layout/TopAppBar';
 import type { Team, PlacedSong } from '@/lib/game/types';
 
 /* ── Phase type for local UI state ─────────────────────── */
 type Phase = 'playing' | 'challenge-window' | 'challenge-placing' | 'showing-result' | 'pass-device' | 'game-over';
-
-/* ── Team color helper ─────────────────────────────────── */
-const getTeamColor = (team: Team) =>
-  team === 'A' ? '#00d4aa' : '#8b5cf6';
 
 export default function GamePage() {
   const router = useRouter();
@@ -62,6 +71,7 @@ export default function GamePage() {
   const [phase, setPhase] = useState<Phase>('playing');
   const [revealed, setRevealed] = useState(false);
   const [songReady, setSongReady] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
   // Track the team whose turn we're showing (to support pass-device correctly)
   const activeTeamRef = useRef<Team>(currentTeam);
   // Placement result overlay state
@@ -76,11 +86,17 @@ export default function GamePage() {
   /* ── Audio ────────────────────────────────────────────── */
   const audio = useAudio();
 
-  /* ── (challenge timer removed — challenges are now manual) ── */
+  /* ── DnD sensors ─────────────────────────────────────── */
+  const pointerSensor = useSensor(PointerSensor, {
+    activationConstraint: { distance: 8 },
+  });
+  const touchSensor = useSensor(TouchSensor, {
+    activationConstraint: { distance: 8 },
+  });
+  const sensors = useSensors(pointerSensor, touchSensor);
 
   /* ── Turn timer ───────────────────────────────────────── */
   const handleTurnTimeout = useCallback(() => {
-    // Auto-skip on turn timeout (no token cost — just advance turn)
     nextTurn();
     audio.stop();
     setSongReady(false);
@@ -115,7 +131,6 @@ export default function GamePage() {
         turnTimer.stopTimer();
       }
     };
-    // Only trigger on phase changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
@@ -141,14 +156,34 @@ export default function GamePage() {
       placeSong(position);
       setSongReady(false);
 
-      // Enter challenge window
       setPhase('challenge-window');
     },
     [phase, placeSong, turnTimer, audio]
   );
 
+  const handleDragStart = useCallback((_event: DragStartEvent) => {
+    setIsDragActive(true);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      setIsDragActive(false);
+      const { over } = event;
+      if (!over) return;
+      const match = String(over.id).match(/^drop-(\d+)$/);
+      if (match) {
+        const position = parseInt(match[1], 10);
+        handlePlaceSong(position);
+      }
+    },
+    [handlePlaceSong],
+  );
+
+  const handleDragCancel = useCallback(() => {
+    setIsDragActive(false);
+  }, []);
+
   const handleChallenge = useCallback(() => {
-    // Transition to challenge-placing phase where challenger places the card
     setPhase('challenge-placing');
   }, []);
 
@@ -156,14 +191,10 @@ export default function GamePage() {
     (position: number) => {
       if (!lastPlacedSong || !lastPlacedTeam) return;
 
-      // Capture placement correctness before challengePlacement mutates state
       const wasPlacedCorrectly = lastPlacedSong.placedCorrectly;
       challengePlacement(position);
 
-      // Determine outcomes after the store updates
       const originalWrong = !wasPlacedCorrectly;
-      // We need to read challengerCorrect from the store after the call
-      // Since challengePlacement is synchronous in Zustand, we can read it
       const challengerCorrect = useGameStore.getState().lastChallengerCorrect ?? false;
       const challengeSucceeded = originalWrong && challengerCorrect;
 
@@ -185,7 +216,6 @@ export default function GamePage() {
     dismissChallenge();
     setRevealed(true);
 
-    // Show placement result overlay
     if (lastPlacedSong && lastPlacedTeam) {
       setPlacementResult({
         song: lastPlacedSong,
@@ -208,7 +238,6 @@ export default function GamePage() {
     skipSong();
     setSongReady(false);
 
-    // Skip goes straight to pass-device (turn already advanced by skipSong)
     setPhase('pass-device');
   }, [currentTeamTokens, settings.tokensToSkip, turnTimer, audio, skipSong]);
 
@@ -240,81 +269,142 @@ export default function GamePage() {
     phase === 'playing' &&
     currentTeamTokens >= (settings.tokensToSkip ?? 1);
 
+  const showDraggableCard = songReady && currentSong;
+
+  // Always Team A left, Team B right
+  const teamATimelineData = currentTeam === 'A' ? currentTeamTimeline : teamATimeline;
+  const teamBTimelineData = currentTeam === 'B' ? currentTeamTimeline : teamBTimeline;
+  const teamAIsActive = currentTeam === 'A';
+  const teamBIsActive = currentTeam === 'B';
+
   /* ── Guard: no song pool yet (redirecting) ─────────── */
   if (songPool.length === 0) {
     return null;
   }
 
   return (
-    <div
-      className="relative flex min-h-dvh flex-col"
-      style={{ background: '#0a0e1a' }}
-    >
-      {/* ── Top section: Score + Turn indicator ──────────── */}
-      <div className="sticky top-0 z-30 px-4 pt-4 pb-2 space-y-2">
-        <ScoreBoard
-          teamAScore={teamAScore}
-          teamBScore={teamBScore}
-          cardsToWin={cardsToWin}
-          currentTeam={currentTeam}
-          teamATokens={teamATokens}
-          teamBTokens={teamBTokens}
-        />
-        <TurnIndicator
-          currentTeam={currentTeam}
-          timeRemaining={
-            phase === 'playing' && settings.turnTimeLimitSeconds > 0
-              ? turnTimer.timeRemaining
-              : undefined
-          }
-          isTimerRunning={turnTimer.isRunning}
-        />
-      </div>
+    <div className="relative flex min-h-dvh flex-col bg-surface-container-lowest">
+      {/* ── Top App Bar ──────────────────────────────────── */}
+      <TopAppBar />
 
-      {/* ── GameBoard with AudioPlayer between timelines ── */}
-      <div className="flex-1 px-4 pb-24">
-        <GameBoard
-          activeTimeline={currentTeamTimeline}
-          opponentTimeline={currentTeam === 'A' ? teamBTimeline : teamATimeline}
-          currentSong={phase === 'playing' ? currentSong : null}
-          activeTeam={currentTeam}
-          onPlaceSong={handlePlaceSong}
-          songReady={songReady}
-          audioPlayer={
-            <AudioPlayer
-              previewUrl={currentSong?.previewUrl ?? null}
-              albumArtUrl={currentSong?.albumArtUrl ?? ''}
-              title={currentSong?.title ?? 'Unknown'}
-              artist={currentSong?.artist ?? 'Unknown'}
-              revealed={revealed}
-              clipDuration={settings.clipDurationSeconds}
-              onSongReady={handleSongReady}
-              onSkip={handleSkip}
-              canSkip={canSkip}
-              teamColor={getTeamColor(currentTeam)}
+      {/* ── Main 3-column grid layout (wrapped in DndContext) ── */}
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <main className="flex-1 pt-24 pb-28 px-4 md:px-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
+          {/* LEFT COLUMN: Team A */}
+          <section className="col-span-12 md:col-span-3 flex flex-col gap-6">
+            <TeamPanel
+              label="Team A"
+              team="A"
+              score={teamAScore}
+              tokens={teamATokens}
+              cardsToWin={cardsToWin}
+              isActive={teamAIsActive}
+              align="left"
             />
-          }
-        />
-      </div>
+            <div className="flex flex-col gap-4">
+              <Timeline
+                timeline={teamATimelineData}
+                team="A"
+                isActiveTeam={teamAIsActive}
+                onPlaceSong={teamAIsActive ? handlePlaceSong : () => {}}
+                isDragActive={teamAIsActive ? isDragActive : false}
+                compact={!teamAIsActive}
+              />
+            </div>
+          </section>
 
+          {/* CENTER COLUMN: Action Zone */}
+          <section className="col-span-12 md:col-span-6 flex flex-col items-center gap-10 relative">
+            <TurnIndicator
+              currentTeam={currentTeam}
+              timeRemaining={
+                phase === 'playing' && settings.turnTimeLimitSeconds > 0
+                  ? turnTimer.timeRemaining
+                  : undefined
+              }
+              isTimerRunning={turnTimer.isRunning}
+            />
+
+            {/* Audio Player / Mystery Card */}
+            <div className="flex flex-col items-center gap-10">
+              {showDraggableCard ? (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                >
+                  <DraggableSongCard song={currentSong} team={currentTeam} />
+                </motion.div>
+              ) : (
+                <AudioPlayer
+                  previewUrl={currentSong?.previewUrl ?? null}
+                  albumArtUrl={currentSong?.albumArtUrl ?? ''}
+                  title={currentSong?.title ?? 'Unknown'}
+                  artist={currentSong?.artist ?? 'Unknown'}
+                  revealed={revealed}
+                  clipDuration={settings.clipDurationSeconds}
+                  onSongReady={handleSongReady}
+                  onSkip={handleSkip}
+                  canSkip={canSkip}
+                  teamColor="var(--color-primary)"
+                />
+              )}
+            </div>
+          </section>
+
+          {/* RIGHT COLUMN: Team B */}
+          <section className="col-span-12 md:col-span-3 flex flex-col gap-6">
+            <TeamPanel
+              label="Team B"
+              team="B"
+              score={teamBScore}
+              tokens={teamBTokens}
+              cardsToWin={cardsToWin}
+              isActive={teamBIsActive}
+              align="right"
+            />
+            <div className="flex flex-col gap-4">
+              <Timeline
+                timeline={teamBTimelineData}
+                team="B"
+                isActiveTeam={teamBIsActive}
+                onPlaceSong={teamBIsActive ? handlePlaceSong : () => {}}
+                isDragActive={teamBIsActive ? isDragActive : false}
+                compact={!teamBIsActive}
+              />
+            </div>
+          </section>
+        </main>
+
+        {/* Floating drag overlay that follows the cursor */}
+        <DragOverlay dropAnimation={null}>
+          {isDragActive && currentSong ? (
+            <DragOverlayCard song={currentSong} team={currentTeam} />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
 
       {/* ── Challenge-placing phase: challenger places card on placer's timeline ── */}
       <AnimatePresence>
         {phase === 'challenge-placing' && lastPlacedSong && lastPlacedTeam && (
           <motion.div
-            className="fixed inset-0 z-50 flex flex-col"
-            style={{ background: '#0a0e1a' }}
+            className="fixed inset-0 z-50 flex flex-col bg-surface-container-lowest"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
           >
             <div className="sticky top-0 z-30 px-4 pt-4 pb-2">
-              <div className="glass-card rounded-xl p-4 text-center">
-                <h3 className="text-lg font-bold text-white">
+              <div className="glass-panel rounded-xl p-4 text-center border border-tertiary/20">
+                <h3 className="text-lg font-bold text-on-surface">
                   Team {challengingTeam}: Place the card where you think it belongs
                 </h3>
-                <p className="text-sm text-white/50 mt-1">
+                <p className="text-sm text-on-surface-variant mt-1">
                   Drag the card onto Team {lastPlacedTeam}&apos;s timeline
                 </p>
               </div>
@@ -322,7 +412,6 @@ export default function GamePage() {
             <div className="flex-1 px-4 pb-24 overflow-auto">
               <GameBoard
                 activeTimeline={
-                  // Show placer's timeline WITHOUT the challenged song
                   (lastPlacedTeam === 'A' ? teamATimeline : teamBTimeline)
                     .filter((s) => s.spotifyId !== lastPlacedSong.spotifyId)
                     .map((s, i) => ({ ...s, placedAtIndex: i }))

@@ -28,115 +28,66 @@ export interface GameBoardProps {
   audioPlayer?: React.ReactNode;
 }
 
-/* ── Team helpers ───────────────────────────────────────── */
-
-const teamColor = (team: Team) =>
-  team === 'A' ? '#00d4aa' : '#8b5cf6';
-
-const teamColorRgb = (team: Team) =>
-  team === 'A' ? '0, 212, 170' : '139, 92, 246';
-
-/* ── Draggable Song Card (mystery style) ────────────────── */
+/* ── Draggable Song Card (Stitch mystery card) ─────────── */
 
 interface DraggableSongCardProps {
   song: Song;
   team: Team;
 }
 
-function DraggableSongCard({ song, team }: DraggableSongCardProps) {
+export function DraggableSongCard({ song, team }: DraggableSongCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } =
     useDraggable({ id: 'current-song' });
-
-  const color = teamColor(team);
-  const rgb = teamColorRgb(team);
-
-  const style: React.CSSProperties = {
-    cursor: isDragging ? 'grabbing' : 'grab',
-    touchAction: 'none',
-    opacity: isDragging ? 0.3 : 1,
-  };
 
   return (
     <motion.div
       ref={setNodeRef}
-      style={style}
+      style={{ touchAction: 'none', opacity: isDragging ? 0.3 : 1 }}
       {...listeners}
       {...attributes}
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ scale: 1, opacity: isDragging ? 0.3 : 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-      className="relative w-[120px] h-[120px] rounded-xl overflow-hidden select-none shrink-0"
+      className="w-52 h-64 glass-panel rounded-2xl border-2 border-primary/20 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors select-none"
       role="button"
       aria-label="Drag this song onto the timeline"
       tabIndex={0}
       aria-roledescription="draggable"
     >
-      {song.albumArtUrl ? (
-        <img
-          src={song.albumArtUrl}
-          alt="Mystery song"
-          className="w-full h-full object-cover"
-          style={{ filter: 'blur(16px) brightness(0.5)' }}
-          draggable={false}
-        />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
-      )}
+      {/* Shimmer overlay */}
+      <div className="absolute inset-0 shimmer animate-[shimmer_3s_infinite]" />
 
-      <div
-        className="absolute inset-0 rounded-xl"
-        style={{
-          border: `2px solid ${color}`,
-          boxShadow: `0 0 12px rgba(${rgb}, 0.2)`,
-        }}
-      />
-
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-        <span className="text-3xl font-bold text-white/80">?</span>
-        <span className="text-[10px] text-white/50 font-medium">
-          {isDragging ? 'Drop on timeline' : 'Drag me'}
-        </span>
+      {/* Question mark icon */}
+      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-4 border border-primary/10">
+        <span className="text-5xl font-headline font-black text-primary/40">?</span>
       </div>
+
+      {/* Label */}
+      <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+        {isDragging ? 'Drop on timeline' : 'Place In Timeline'}
+      </p>
     </motion.div>
   );
 }
 
 /* ── Drag overlay card (floating copy under cursor) ────── */
 
-function DragOverlayCard({ song, team }: { song: Song; team: Team }) {
-  const color = teamColor(team);
-  const rgb = teamColorRgb(team);
-
+export function DragOverlayCard({ song, team }: { song: Song; team: Team }) {
   return (
     <div
-      className="relative w-[120px] h-[120px] rounded-xl overflow-hidden select-none"
+      className="w-52 h-64 glass-panel rounded-2xl border-2 border-primary/20 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden select-none"
       style={{
-        boxShadow: `0 0 32px rgba(${rgb}, 0.5), 0 20px 40px rgba(0,0,0,0.5)`,
-        transform: 'scale(1.1)',
+        boxShadow: '0 0 32px rgba(40, 223, 181, 0.5), 0 20px 40px rgba(0,0,0,0.5)',
+        transform: 'scale(1.05)',
       }}
     >
-      {song.albumArtUrl ? (
-        <img
-          src={song.albumArtUrl}
-          alt="Mystery song"
-          className="w-full h-full object-cover"
-          style={{ filter: 'blur(16px) brightness(0.5)' }}
-          draggable={false}
-        />
-      ) : (
-        <div className="w-full h-full bg-gradient-to-br from-white/10 to-white/5" />
-      )}
-      <div
-        className="absolute inset-0 rounded-xl"
-        style={{
-          border: `2px solid ${color}`,
-          boxShadow: `0 0 24px rgba(${rgb}, 0.5), inset 0 0 24px rgba(${rgb}, 0.1)`,
-        }}
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-        <span className="text-3xl font-bold text-white/80">?</span>
-        <span className="text-[10px] text-white/50 font-medium">Drop on timeline</span>
+      <div className="absolute inset-0 shimmer animate-[shimmer_3s_infinite]" />
+      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-4 border border-primary/10">
+        <span className="text-5xl font-headline font-black text-primary/40">?</span>
       </div>
+      <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+        Drop on timeline
+      </p>
     </div>
   );
 }
@@ -208,12 +159,6 @@ export default function GameBoard({
       <div className="flex gap-3 w-full items-stretch">
         {/* Left: Team A timeline */}
         <div className="flex-1 min-w-0">
-          <h3
-            className="text-[10px] font-semibold uppercase tracking-wider mb-1"
-            style={{ color: teamColor('A'), opacity: teamAIsActive ? 0.8 : 0.4 }}
-          >
-            Team A
-          </h3>
           <Timeline
             timeline={teamATimeline}
             team="A"
@@ -225,7 +170,7 @@ export default function GameBoard({
         </div>
 
         {/* Center: Audio player / Draggable card */}
-        <div className="flex flex-col items-center justify-center" style={{ width: 140 }}>
+        <div className="flex flex-col items-center justify-center" style={{ width: 220 }}>
           {showDraggableCard ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -241,12 +186,6 @@ export default function GameBoard({
 
         {/* Right: Team B timeline */}
         <div className="flex-1 min-w-0">
-          <h3
-            className="text-[10px] font-semibold uppercase tracking-wider mb-1 text-right"
-            style={{ color: teamColor('B'), opacity: teamBIsActive ? 0.8 : 0.4 }}
-          >
-            Team B
-          </h3>
           <Timeline
             timeline={teamBTimeline}
             team="B"
