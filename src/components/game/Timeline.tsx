@@ -389,52 +389,77 @@ export default function Timeline({
   const CARD_HALF_PCT = compact ? 4.5 : 6.5;
   const MIN_GAP = compact ? MIN_CENTER_GAP_COMPACT : MIN_CENTER_GAP_NORMAL;
 
-  // Compute positions for solid cards (used for drop zones, card rendering, and ghost placement)
+  // ── Build a combined layout array with hidden/ghost cards at their PLACED positions ──
+  // Hidden and ghost cards must participate in collision avoidance so they don't overlap
+  // existing cards. They use their placedAtIndex position (not releaseYear) to avoid
+  // revealing the correct answer.
+
+  // Step 1: Compute ideal positions for solid cards only (screen order: newest first)
   const screenOrder = [...solidSorted].reverse();
-  const idealPositions = screenOrder.map(s => yearToPercent(s.releaseYear));
-  const adjustedPositions = resolvePositions(idealPositions, MIN_GAP);
+  const solidIdealPositions = screenOrder.map(s => yearToPercent(s.releaseYear));
 
-  const solidPositionMap = new Map<string, { ideal: number; adjusted: number }>();
-  screenOrder.forEach((song, i) => {
-    solidPositionMap.set(song.spotifyId, {
-      ideal: idealPositions[i],
-      adjusted: adjustedPositions[i],
-    });
-  });
+  // Step 2: Build combined screen-order array inserting hidden/ghost at their placed positions.
+  // placedAtIndex P in ascending-year order → screen index = solidSorted.length - P
+  // The ideal position for hidden/ghost is the midpoint of their neighbors' ideal positions.
+  type LayoutEntry = { id: string; type: 'solid' | 'hidden' | 'ghost'; idealPos: number };
+  const layoutEntries: LayoutEntry[] = screenOrder.map((s, i) => ({
+    id: s.spotifyId, type: 'solid' as const, idealPos: solidIdealPositions[i],
+  }));
 
-  // ── Compute position for excluded cards from placedAtIndex neighbors ──
-  // These cards should appear where the team placed them (between neighbors),
-  // NOT at their correct year position (which would reveal the answer).
-  function computeNeighborPosition(song: PlacedSong): number {
+  function insertExcludedCard(song: PlacedSong, type: 'hidden' | 'ghost') {
     const P = song.placedAtIndex;
-    // After removing from solidSorted, left neighbor = solidSorted[P-1], right = solidSorted[P]
-    const leftNeighbor = P > 0 ? solidSorted[P - 1] : null;
-    const rightNeighbor = P < solidSorted.length ? solidSorted[P] : null;
+    // Screen insertion index (reversed from year-ascending order)
+    const screenIdx = solidSorted.length - P;
+    // Compute ideal position as midpoint of neighbors' ideal positions
+    const aboveIdx = screenIdx - 1; // neighbor above in screen order (newer)
+    const belowIdx = screenIdx;     // neighbor below in screen order (older)
+    const abovePos = aboveIdx >= 0 ? layoutEntries[aboveIdx]?.idealPos : undefined;
+    const belowPos = belowIdx < layoutEntries.length ? layoutEntries[belowIdx]?.idealPos : undefined;
 
-    const belowPos = leftNeighbor
-      ? solidPositionMap.get(leftNeighbor.spotifyId)?.adjusted
-      : undefined;
-    const abovePos = rightNeighbor
-      ? solidPositionMap.get(rightNeighbor.spotifyId)?.adjusted
-      : undefined;
-
-    if (belowPos !== undefined && abovePos !== undefined) {
-      return (belowPos + abovePos) / 2;
+    let idealPos: number;
+    if (abovePos !== undefined && belowPos !== undefined) {
+      idealPos = (abovePos + belowPos) / 2;
     } else if (belowPos !== undefined) {
-      return Math.max(4, belowPos - MIN_GAP / 2);
+      idealPos = Math.max(4, belowPos - MIN_GAP / 2);
     } else if (abovePos !== undefined) {
-      return Math.min(96, abovePos + MIN_GAP / 2);
+      idealPos = Math.min(96, abovePos + MIN_GAP / 2);
+    } else {
+      idealPos = 50;
     }
-    return 50;
+
+    layoutEntries.splice(screenIdx, 0, { id: song.spotifyId, type, idealPos });
   }
 
-  const ghostTopPercent = ghostSong ? computeNeighborPosition(ghostSong) : 50;
-  const hiddenTopPercent = hiddenSong ? computeNeighborPosition(hiddenSong) : 50;
+  // Insert hidden first, then ghost (order matters if both exist since indices shift)
+  if (hiddenSong) insertExcludedCard(hiddenSong, 'hidden');
+  if (ghostSong) insertExcludedCard(ghostSong, 'ghost');
+
+  // Step 3: Run collision avoidance on the full combined array
+  const combinedIdealPositions = layoutEntries.map(e => e.idealPos);
+  const combinedAdjustedPositions = resolvePositions(combinedIdealPositions, MIN_GAP);
+
+  // Step 4: Build position maps from the combined results
+  const solidPositionMap = new Map<string, { ideal: number; adjusted: number }>();
+  let ghostTopPercent = 50;
+  let hiddenTopPercent = 50;
+
+  layoutEntries.forEach((entry, i) => {
+    const ideal = combinedIdealPositions[i];
+    const adjusted = combinedAdjustedPositions[i];
+    if (entry.type === 'solid') {
+      solidPositionMap.set(entry.id, { ideal, adjusted });
+    } else if (entry.type === 'hidden') {
+      hiddenTopPercent = adjusted;
+    } else if (entry.type === 'ghost') {
+      ghostTopPercent = adjusted;
+    }
+  });
 
   // ── Build drop zones using adjusted positions of solid cards ──
+  const solidAdjustedPositions = screenOrder.map(s => solidPositionMap.get(s.spotifyId)!.adjusted);
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
   if (showDropZones && solidSorted.length > 0) {
-    const edges = adjustedPositions.map((p) => ({
+    const edges = solidAdjustedPositions.map((p) => ({
       top: Math.max(0, p - CARD_HALF_PCT),
       bottom: Math.min(100, p + CARD_HALF_PCT),
     }));
