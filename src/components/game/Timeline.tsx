@@ -21,7 +21,8 @@ const MIN_CENTER_GAP_COMPACT = 11;
 const AXIS_POS = { normal: 40, compact: 30 };
 const CARD_OFFSET = { normal: 58, compact: 44 };
 const DROP_ZONE_OFFSET = { normal: 46, compact: 36 };
-const CONNECTOR_STUB = 14; // px horizontal stub from axis toward card
+const CONNECTOR_STUB_BASE = 10; // px base horizontal stub from axis
+const CONNECTOR_STUB_STEP = 6;  // px increment per additional connector
 
 /* ── Props ──────────────────────────────────────────────── */
 
@@ -578,8 +579,8 @@ export default function Timeline({
             const displaced = solidSorted
               .map(song => ({ song, pos: solidPositionMap.get(song.spotifyId) }))
               .filter(({ pos }) => pos && Math.abs(pos!.ideal - pos!.adjusted) >= 0.5);
-            const stubBase = 10;
-            const stubStep = 6;
+            const stubBase = CONNECTOR_STUB_BASE;
+            const stubStep = CONNECTOR_STUB_STEP;
             return displaced.map(({ song, pos }, connIdx) => (
               <ElbowConnector
                 key={`line-${song.spotifyId}`}
