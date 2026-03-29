@@ -55,13 +55,13 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
 
         <SliderSetting
           label="Turn Time Limit"
-          description="Time to place a song (0 = no limit)"
-          value={settings.turnTimeLimitSeconds}
-          min={0}
-          max={120}
+          description="Time to place a song"
+          value={settings.turnTimeLimitSeconds === 0 ? 135 : settings.turnTimeLimitSeconds}
+          min={15}
+          max={135}
           step={15}
-          formatValue={(v) => (v === 0 ? 'None' : `${v}s`)}
-          onChange={(v) => update({ turnTimeLimitSeconds: v })}
+          formatValue={(v) => (v >= 135 ? '∞' : `${v}s`)}
+          onChange={(v) => update({ turnTimeLimitSeconds: v >= 135 ? 0 : v })}
           colorClass="primary"
         />
       </div>
