@@ -223,11 +223,11 @@ export default function Timeline({
     ? 'rgba(40, 223, 181, 0.1)'
     : 'rgba(208, 188, 255, 0.1)';
   const decadeColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.25)'
-    : 'rgba(208, 188, 255, 0.25)';
+    ? 'rgba(40, 223, 181, 0.6)'
+    : 'rgba(208, 188, 255, 0.6)';
   const tickColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.15)'
-    : 'rgba(208, 188, 255, 0.15)';
+    ? 'rgba(40, 223, 181, 0.35)'
+    : 'rgba(208, 188, 255, 0.35)';
 
   return (
     <div className={`relative h-full ${wrapperClasses}`}>
@@ -269,7 +269,7 @@ export default function Timeline({
                 }}
               >
                 <span
-                  className={`${compact ? 'text-[7px] w-6' : 'text-[8px] w-8'} font-mono text-right pr-1 select-none`}
+                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold text-right pr-1 select-none`}
                   style={{ color: decadeColor }}
                 >
                   {decade}
