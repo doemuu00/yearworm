@@ -147,9 +147,11 @@ interface ConnectorProps {
   adjustedPercent: number;
   team: Team;
   compact: boolean;
+  /** Staggered offset (px) from axis for the vertical segment, prevents overlap */
+  stubLength: number;
 }
 
-function ElbowConnector({ idealPercent, adjustedPercent, team, compact }: ConnectorProps) {
+function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLength }: ConnectorProps) {
   const isPrimary = team === 'A';
   const lineColor = isPrimary
     ? 'rgba(40, 223, 181, 0.3)'
@@ -159,7 +161,7 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact }: Connec
     : 'rgba(208, 188, 255, 0.6)';
   const axisPos = compact ? AXIS_POS.compact : AXIS_POS.normal;
   const cardEdge = compact ? CARD_OFFSET.compact : CARD_OFFSET.normal;
-  const stubEnd = axisPos + CONNECTOR_STUB; // px from same side as axis
+  const stubEnd = axisPos + stubLength;
   const w = 2;
 
   // Three segments forming a stepped elbow:
@@ -194,8 +196,8 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact }: Connec
           height: w,
           transform: 'translateY(-50%)',
           ...(isPrimary
-            ? { left: axisPos, width: CONNECTOR_STUB }
-            : { right: axisPos, width: CONNECTOR_STUB }),
+            ? { left: axisPos, width: stubLength }
+            : { right: axisPos, width: stubLength }),
           background: lineColor,
           zIndex: 15,
         }}
@@ -571,19 +573,24 @@ export default function Timeline({
           ))}
 
           {/* ── Elbow connectors (displaced cards) ─────── */}
-          {solidSorted.map((song) => {
-            const pos = solidPositionMap.get(song.spotifyId);
-            if (!pos || Math.abs(pos.ideal - pos.adjusted) < 0.5) return null;
-            return (
+          {(() => {
+            // Collect displaced cards and assign staggered stub lengths
+            const displaced = solidSorted
+              .map(song => ({ song, pos: solidPositionMap.get(song.spotifyId) }))
+              .filter(({ pos }) => pos && Math.abs(pos!.ideal - pos!.adjusted) >= 0.5);
+            const stubBase = 10;
+            const stubStep = 6;
+            return displaced.map(({ song, pos }, connIdx) => (
               <ElbowConnector
                 key={`line-${song.spotifyId}`}
-                idealPercent={pos.ideal}
-                adjustedPercent={pos.adjusted}
+                idealPercent={pos!.ideal}
+                adjustedPercent={pos!.adjusted}
                 team={team}
                 compact={compact}
+                stubLength={stubBase + connIdx * stubStep}
               />
             );
-          })}
+          })()}
 
           {/* ── Ghost card (contested, semi-transparent) ── */}
           {ghostSong && (
