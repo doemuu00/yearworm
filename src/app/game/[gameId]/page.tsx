@@ -363,6 +363,7 @@ export default function GamePage() {
                 onPlaceSong={teamAIsActive ? handlePlaceSong : () => {}}
                 isDragActive={teamAIsActive ? isDragActive : false}
                 compact={!teamAIsActive}
+                ghostSongId={isChallenging && lastPlacedTeam === 'A' ? lastPlacedSong?.spotifyId : undefined}
               />
             </div>
           </section>
@@ -460,6 +461,7 @@ export default function GamePage() {
                 onPlaceSong={teamBIsActive ? handlePlaceSong : () => {}}
                 isDragActive={teamBIsActive ? isDragActive : false}
                 compact={!teamBIsActive}
+                ghostSongId={isChallenging && lastPlacedTeam === 'B' ? lastPlacedSong?.spotifyId : undefined}
               />
             </div>
           </section>

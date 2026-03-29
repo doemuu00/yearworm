@@ -22,6 +22,8 @@ export interface TimelineProps {
   onPlaceSong: (position: number) => void;
   isDragActive: boolean;
   compact?: boolean;
+  /** During challenge-placing, render this song as a ghost (transparent, no drop zone impact) */
+  ghostSongId?: string;
 }
 
 /** Map a year to a percentage position — newest (2030) at top (0%), oldest (1915) at bottom (100%) */
@@ -142,6 +144,59 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
   );
 }
 
+/* ── Ghost Card (semi-transparent contested card) ────── */
+
+interface GhostCardProps {
+  song: PlacedSong;
+  team: Team;
+  compact: boolean;
+  topPercent: number;
+}
+
+function GhostCard({ song, team, compact, topPercent }: GhostCardProps) {
+  const isPrimary = team === 'A';
+  const mirror = !isPrimary;
+  const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
+  const badgeBg = isPrimary ? 'bg-primary' : 'bg-secondary';
+  const badgeText = isPrimary ? 'text-on-primary' : 'text-on-secondary-fixed';
+  const cardOffset = compact ? 36 : 48;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9, y: '-50%' }}
+      animate={{ opacity: [0.2, 0.35, 0.2], scale: 1, y: '-50%' }}
+      transition={{
+        opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+        scale: { type: 'spring', stiffness: 400, damping: 25 },
+      }}
+      className="absolute pointer-events-none"
+      style={{
+        top: `${topPercent}%`,
+        ...(mirror ? { right: cardOffset, left: 4 } : { left: cardOffset, right: 4 }),
+        zIndex: 4,
+      }}
+    >
+      <div className={`${compact ? 'p-3' : 'p-5'} rounded-xl border-2 border-dashed relative overflow-hidden ${borderColor}`}
+        style={{ background: 'rgba(255,255,255,0.03)' }}
+      >
+        <div className={`flex justify-between items-start mb-2 ${mirror ? 'flex-row-reverse' : ''}`}>
+          <span className={`px-3 py-1.5 ${badgeBg} ${badgeText} font-headline font-black text-sm rounded-lg tracking-tight opacity-50`}>
+            ?
+          </span>
+        </div>
+        <h3 className={`font-headline font-bold text-on-surface/40 leading-tight ${compact ? 'text-sm' : 'text-lg'} mb-0.5 truncate ${mirror ? 'text-right' : ''}`}>
+          {song.title}
+        </h3>
+        {!compact && (
+          <p className={`text-sm text-on-surface-variant/30 font-medium truncate ${mirror ? 'text-right' : ''}`}>
+            {song.artist}
+          </p>
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 /* ── Timeline (vertical) ──────────────────────────────── */
 
 export default function Timeline({
@@ -150,10 +205,20 @@ export default function Timeline({
   isActiveTeam,
   isDragActive,
   compact = false,
+  ghostSongId,
 }: TimelineProps) {
   const sorted = [...timeline].sort((a, b) => a.releaseYear - b.releaseYear);
   const isPrimary = team === 'A';
   const showDropZones = isDragActive && isActiveTeam;
+
+  // Separate ghost card from solid cards for drop zone calculation
+  const ghostSong = ghostSongId ? sorted.find(s => s.spotifyId === ghostSongId) : null;
+  const solidSorted = ghostSongId ? sorted.filter(s => s.spotifyId !== ghostSongId) : sorted;
+
+  // Find the drop zone index to exclude (where ghost card sits among solid cards by year)
+  const excludedDropIndex = ghostSong
+    ? solidSorted.filter(s => s.releaseYear <= ghostSong.releaseYear).length
+    : undefined;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const innerRef = useRef<HTMLDivElement>(null);
@@ -165,11 +230,12 @@ export default function Timeline({
   // Build drop zones in the gaps between placed cards (and above/below the first/last).
   // Cards are centered on their year position via translateY(-50%). Drop zones must not
   // overlap cards, so we offset boundaries by half the card height (as a percentage).
+  // Uses solidSorted (excludes ghost card) so the ghost doesn't affect zone boundaries.
   const CARD_HALF_PCT = compact ? 4.5 : 6.5; // approximate card half-height as % of timeline
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
-  if (showDropZones && sorted.length > 0) {
-    // sorted ascending by year. On screen: newest (last) at top (low %), oldest (first) at bottom (high %).
-    const screenOrder = [...sorted].reverse(); // newest first (top to bottom)
+  if (showDropZones && solidSorted.length > 0) {
+    // solidSorted ascending by year. On screen: newest (last) at top (low %), oldest (first) at bottom (high %).
+    const screenOrder = [...solidSorted].reverse(); // newest first (top to bottom)
     const positions = screenOrder.map((s) => yearToPercent(s.releaseYear));
 
     // For N cards we create N+1 zones in the gaps between card edges.
@@ -184,7 +250,9 @@ export default function Timeline({
       const bottom = i === edges.length ? 100 : edges[i].top;
       const height = bottom - top;
       if (height > 0.5) {
-        const dropIndex = sorted.length - i;
+        const dropIndex = solidSorted.length - i;
+        // Skip the drop zone that corresponds to the ghost card's original position
+        if (dropIndex === excludedDropIndex) continue;
         dropZones.push({
           id: `drop-${dropIndex}`,
           topPct: top,
@@ -192,7 +260,7 @@ export default function Timeline({
         });
       }
     }
-  } else if (showDropZones && sorted.length === 0) {
+  } else if (showDropZones && solidSorted.length === 0) {
     dropZones.push({ id: 'drop-0', topPct: 0, heightPct: 100 });
   }
 
@@ -280,8 +348,19 @@ export default function Timeline({
             />
           ))}
 
+          {/* ── Ghost card (contested, semi-transparent) ── */}
+          {ghostSong && (
+            <GhostCard
+              key={`ghost-${ghostSong.spotifyId}`}
+              song={ghostSong}
+              team={team}
+              compact={compact}
+              topPercent={yearToPercent(ghostSong.releaseYear)}
+            />
+          )}
+
           {/* ── Placed cards ────────────────────────────── */}
-          {sorted.map((song, i) => (
+          {solidSorted.map((song, i) => (
             <PlacedCard
               key={song.spotifyId}
               song={song}
@@ -293,7 +372,7 @@ export default function Timeline({
           ))}
 
           {/* ── Empty state ─────────────────────────────── */}
-          {sorted.length === 0 && !showDropZones && (
+          {solidSorted.length === 0 && !showDropZones && (
             <div className="absolute inset-0 flex items-center justify-center">
               <p className="text-on-surface-variant/30 text-sm select-none">
                 {isActiveTeam ? 'Listen & place songs' : 'Opponent timeline'}

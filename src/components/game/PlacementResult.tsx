@@ -98,7 +98,7 @@ function AnimatedX({ color }: { color: string }) {
 }
 
 /* ── Stagger wrapper for text lines ───────────────────── */
-const staggerDelays = [0.8, 1.5, 1.8, 2.0];
+const staggerDelays = [0.8, 1.5, 1.8, 2.1, 2.4];
 const staggerChild = {
   hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
@@ -139,6 +139,8 @@ export default function PlacementResult({
   let accentColor: string;
   let headlineText: string;
   let subtitleText: string;
+  // For challenged scenarios: two result lines (one per team)
+  let challengeLines: { label: string; text: string; color: string }[] | null = null;
 
   if (!wasChallenged) {
     // Scenarios 1 & 2
@@ -153,19 +155,31 @@ export default function PlacementResult({
     showCheck = false;
     accentColor = teamColor(challengingTeam);
     headlineText = 'Challenge successful!';
-    subtitleText = `Card stolen by ${teamLabel(challengingTeam)}!`;
+    subtitleText = '';
+    challengeLines = [
+      { label: teamLabel(placingTeam), text: 'placed incorrectly', color: '#ef4444' },
+      { label: teamLabel(challengingTeam), text: 'challenged correctly — card stolen!', color: teamColor(challengingTeam) },
+    ];
   } else if (challengerCorrect === false) {
     // Scenario 4: original wrong, challenger also wrong — both wrong
     showCheck = false;
     accentColor = '#ef4444';
     headlineText = 'Both wrong!';
-    subtitleText = 'Card removed.';
+    subtitleText = '';
+    challengeLines = [
+      { label: teamLabel(placingTeam), text: 'placed incorrectly', color: '#ef4444' },
+      { label: teamLabel(challengingTeam), text: 'also placed incorrectly', color: '#ef4444' },
+    ];
   } else {
     // Scenario 5: original was correct — challenge failed
     showCheck = true;
     accentColor = teamColor(placingTeam);
     headlineText = 'Challenge failed!';
-    subtitleText = 'Placement was correct.';
+    subtitleText = '';
+    challengeLines = [
+      { label: teamLabel(placingTeam), text: 'placed correctly', color: '#22c55e' },
+      { label: teamLabel(challengingTeam), text: 'challenged incorrectly', color: '#ef4444' },
+    ];
   }
 
   return (
@@ -278,16 +292,35 @@ export default function PlacementResult({
               {headlineText}
             </motion.h3>
 
-            {/* Subtitle */}
-            <motion.p
-              className="text-sm text-white/60"
-              custom={2}
-              variants={staggerChild}
-              initial="hidden"
-              animate="visible"
-            >
-              {subtitleText}
-            </motion.p>
+            {/* Challenge: dual-team result lines */}
+            {challengeLines ? (
+              <div className="space-y-1.5 mt-2">
+                {challengeLines.map((line, idx) => (
+                  <motion.p
+                    key={line.label}
+                    className="text-sm font-semibold"
+                    custom={2 + idx}
+                    variants={staggerChild}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    <span className="text-white/80">{line.label}</span>{' '}
+                    <span style={{ color: line.color }}>{line.text}</span>
+                  </motion.p>
+                ))}
+              </div>
+            ) : (
+              /* Subtitle (unchallenged scenarios) */
+              <motion.p
+                className="text-sm text-white/60"
+                custom={2}
+                variants={staggerChild}
+                initial="hidden"
+                animate="visible"
+              >
+                {subtitleText}
+              </motion.p>
+            )}
 
             {/* Team accent bar */}
             <motion.div
@@ -304,7 +337,7 @@ export default function PlacementResult({
               className="mt-6 w-full rounded-xl bg-white/10 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-white/15"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 2.2, duration: 0.4, ease: 'easeOut' }}
+              transition={{ delay: challengeLines ? 2.8 : 2.2, duration: 0.4, ease: 'easeOut' }}
               onClick={onDismiss}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
