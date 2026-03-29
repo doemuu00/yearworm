@@ -43,11 +43,13 @@ interface DropZoneProps {
 function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id });
   const isPrimary = team === 'A';
+  const mirror = !isPrimary; // Team B axis on right
   const borderColor = isPrimary ? 'border-primary/20' : 'border-secondary/20';
   const borderColorOver = isPrimary ? 'border-primary' : 'border-secondary';
   const textColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
   const bgColor = isPrimary ? 'bg-primary/[0.02]' : 'bg-secondary/[0.02]';
   const bgColorOver = isPrimary ? 'bg-primary/15' : 'bg-secondary/15';
+  const axisOffset = compact ? 28 : 36;
 
   return (
     <div
@@ -56,8 +58,7 @@ function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }
       style={{
         top: `${topPercent}%`,
         height: `${heightPercent}%`,
-        left: compact ? 28 : 36,
-        right: 0,
+        ...(mirror ? { right: axisOffset, left: 0 } : { left: axisOffset, right: 0 }),
         zIndex: isOver ? 10 : 5,
       }}
     >
@@ -91,6 +92,7 @@ interface PlacedCardProps {
 
 function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps) {
   const isPrimary = team === 'A';
+  const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
   const badgeBg = isPrimary ? 'bg-primary' : 'bg-secondary';
   const badgeText = isPrimary ? 'text-on-primary' : 'text-on-secondary-fixed';
@@ -98,19 +100,19 @@ function PlacedCard({ song, team, index, compact, topPercent }: PlacedCardProps)
     ? 'shadow-[0_4px_12px_rgba(40,223,181,0.3)]'
     : 'shadow-[0_4px_12px_rgba(208,188,255,0.2)]';
   const checkColor = isPrimary ? 'text-primary' : 'text-secondary';
+  const cardOffset = compact ? 36 : 48;
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.7, x: 16 }}
+      initial={{ opacity: 0, scale: 0.7, x: mirror ? -16 : 16 }}
       animate={{ opacity: 1, scale: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 400, damping: 25, delay: index * 0.04 }}
       className="absolute"
       style={{
         top: `${topPercent}%`,
         transform: 'translateY(-50%)',
-        left: compact ? 36 : 48,
-        right: 4,
+        ...(mirror ? { right: cardOffset, left: 4 } : { left: cardOffset, right: 4 }),
         zIndex: 20 + index,
       }}
     >
@@ -228,7 +230,9 @@ export default function Timeline({
           <div
             style={{
               position: 'absolute',
-              left: compact ? 30 : 40,
+              ...(isPrimary
+                ? { left: compact ? 30 : 40 }
+                : { right: compact ? 30 : 40 }),
               top: compact ? 8 : 12,
               bottom: compact ? 8 : 12,
               width: 2,
@@ -243,15 +247,15 @@ export default function Timeline({
             return (
               <div
                 key={decade}
-                className="absolute flex items-center"
+                className={`absolute flex items-center ${isPrimary ? '' : 'flex-row-reverse'}`}
                 style={{
                   top: `${pct}%`,
-                  left: 0,
+                  ...(isPrimary ? { left: 0 } : { right: 0 }),
                   transform: 'translateY(-50%)',
                 }}
               >
                 <span
-                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold text-right pr-1 select-none`}
+                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold ${isPrimary ? 'text-right pr-1' : 'text-left pl-1'} select-none`}
                   style={{ color: decadeColor }}
                 >
                   {decade}
