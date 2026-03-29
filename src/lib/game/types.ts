@@ -66,7 +66,7 @@ export interface GameAction {
 
 export const DEFAULT_GAME_SETTINGS: GameSettings = {
   cardsToWin: 5,
-  clipDurationSeconds: 30,
+  clipDurationSeconds: 15,
   turnTimeLimitSeconds: 0,
   tokensPerCorrectGuess: 1,
   tokensToChallenge: 1,

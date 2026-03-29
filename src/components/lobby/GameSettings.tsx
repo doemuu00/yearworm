@@ -46,7 +46,7 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
           description="How long each song preview plays"
           value={settings.clipDurationSeconds}
           min={5}
-          max={30}
+          max={15}
           step={5}
           formatValue={(v) => `${v}s`}
           onChange={(v) => {
