@@ -264,14 +264,15 @@ export default function GamePage() {
 
   const handleResultDismiss = useCallback(() => {
     setPlacementResult(null);
-    setPhase('guess-commit');
+    setPhase('guess-verify');
   }, []);
 
   const handleGuessVerifyYes = useCallback(() => {
+    commitGuess();
     confirmGuess();
     setPlacementResult(null);
     setPhase('pass-device');
-  }, [confirmGuess]);
+  }, [commitGuess, confirmGuess]);
 
   const handleGuessVerifyNo = useCallback(() => {
     resetGuess();
@@ -476,16 +477,7 @@ export default function GamePage() {
         </DragOverlay>
       </DndContext>
 
-      {/* ── Modal: Guess commit (before reveal) ────────── */}
-      <GuessModal
-        isOpen={phase === 'guess-commit'}
-        mode="commit"
-        placingTeam={lastPlacedTeam}
-        onYes={handleGuessCommitYes}
-        onNo={handleGuessCommitNo}
-      />
-
-      {/* ── Modal: Guess verify (after reveal) ───────────── */}
+      {/* ── Modal: Guess (after reveal) ───────────────────── */}
       <GuessModal
         isOpen={phase === 'guess-verify'}
         mode="verify"
