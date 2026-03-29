@@ -365,9 +365,15 @@ export default function Timeline({
   const isPrimary = team === 'A';
   const showDropZones = isDragActive && isActiveTeam;
 
-  // Separate ghost card from solid cards for drop zone calculation
+  // Separate ghost and hidden cards from solid cards.
+  // Ghost: excluded from drop zones and rendered as transparent.
+  // Hidden: year/icon masked and positioned at drop zone where placed, not at correct year.
   const ghostSong = ghostSongId ? sorted.find(s => s.spotifyId === ghostSongId) ?? null : null;
-  const solidSorted = ghostSongId ? sorted.filter(s => s.spotifyId !== ghostSongId) : sorted;
+  const hiddenSong = hiddenSongId ? sorted.find(s => s.spotifyId === hiddenSongId) ?? null : null;
+  const excludedIds = new Set([ghostSongId, hiddenSongId].filter(Boolean));
+  const solidSorted = excludedIds.size > 0
+    ? sorted.filter(s => !excludedIds.has(s.spotifyId))
+    : sorted;
 
   // The excluded drop zone is at the ghost's placedAtIndex — where the team dropped it
   const excludedDropIndex = ghostSong !== null ? ghostSong.placedAtIndex : undefined;
@@ -396,13 +402,12 @@ export default function Timeline({
     });
   });
 
-  // ── Compute ghost position from placedAtIndex neighbors ──
-  // The ghost should appear where the team placed it (between its neighbors),
-  // NOT at its correct year position (which would reveal the answer).
-  let ghostTopPercent = 50;
-  if (ghostSong) {
-    const P = ghostSong.placedAtIndex;
-    // After removing ghost from solidSorted, left neighbor = solidSorted[P-1], right = solidSorted[P]
+  // ── Compute position for excluded cards from placedAtIndex neighbors ──
+  // These cards should appear where the team placed them (between neighbors),
+  // NOT at their correct year position (which would reveal the answer).
+  function computeNeighborPosition(song: PlacedSong): number {
+    const P = song.placedAtIndex;
+    // After removing from solidSorted, left neighbor = solidSorted[P-1], right = solidSorted[P]
     const leftNeighbor = P > 0 ? solidSorted[P - 1] : null;
     const rightNeighbor = P < solidSorted.length ? solidSorted[P] : null;
 
@@ -414,13 +419,17 @@ export default function Timeline({
       : undefined;
 
     if (belowPos !== undefined && abovePos !== undefined) {
-      ghostTopPercent = (belowPos + abovePos) / 2;
+      return (belowPos + abovePos) / 2;
     } else if (belowPos !== undefined) {
-      ghostTopPercent = Math.max(4, belowPos - MIN_GAP / 2);
+      return Math.max(4, belowPos - MIN_GAP / 2);
     } else if (abovePos !== undefined) {
-      ghostTopPercent = Math.min(96, abovePos + MIN_GAP / 2);
+      return Math.min(96, abovePos + MIN_GAP / 2);
     }
+    return 50;
   }
+
+  const ghostTopPercent = ghostSong ? computeNeighborPosition(ghostSong) : 50;
+  const hiddenTopPercent = hiddenSong ? computeNeighborPosition(hiddenSong) : 50;
 
   // ── Build drop zones using adjusted positions of solid cards ──
   const dropZones: { id: string; topPct: number; heightPct: number }[] = [];
@@ -560,6 +569,19 @@ export default function Timeline({
             />
           )}
 
+          {/* ── Hidden card (placed but unrevealed) ─────── */}
+          {hiddenSong && (
+            <PlacedCard
+              key={hiddenSong.spotifyId}
+              song={hiddenSong}
+              team={team}
+              index={solidSorted.length}
+              compact={compact}
+              topPercent={hiddenTopPercent}
+              hidden
+            />
+          )}
+
           {/* ── Placed cards ────────────────────────────── */}
           {solidSorted.map((song, i) => {
             const pos = solidPositionMap.get(song.spotifyId);
@@ -571,7 +593,6 @@ export default function Timeline({
                 index={i}
                 compact={compact}
                 topPercent={pos?.adjusted ?? yearToPercent(song.releaseYear)}
-                hidden={song.spotifyId === hiddenSongId}
               />
             );
           })}
