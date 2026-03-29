@@ -21,17 +21,12 @@ export default function TurnIndicator({
   const colorClass = isPrimary ? 'text-primary' : 'text-secondary';
   const glowClass = isPrimary ? 'vibe-glow' : 'glow-secondary';
   const name = teamLabel || (isPrimary ? 'Team A' : 'Team B');
-  const vibeLabel = `${name}'s Vibe`.toUpperCase();
+  const turnLabel = `${name}'s Turn`.toUpperCase();
   const isLow = timeRemaining !== undefined && timeRemaining <= 5;
 
   return (
     <div className="text-center py-2">
-      {/* Active turn label */}
-      <p className={`text-xs font-bold ${isPrimary ? 'text-primary/60' : 'text-secondary/60'} tracking-[0.2em] uppercase mb-1`}>
-        Active Turn
-      </p>
-
-      {/* Vibe headline */}
+      {/* Turn headline */}
       <AnimatePresence mode="wait">
         <motion.h1
           key={currentTeam}
@@ -41,7 +36,7 @@ export default function TurnIndicator({
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.25 }}
         >
-          {vibeLabel}
+          {turnLabel}
         </motion.h1>
       </AnimatePresence>
 
