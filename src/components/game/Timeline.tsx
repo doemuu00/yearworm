@@ -369,8 +369,10 @@ export default function Timeline({
   // Ghost: excluded from drop zones and rendered as transparent.
   // Hidden: year/icon masked and positioned at drop zone where placed, not at correct year.
   const ghostSong = ghostSongId ? sorted.find(s => s.spotifyId === ghostSongId) ?? null : null;
-  const hiddenSong = hiddenSongId ? sorted.find(s => s.spotifyId === hiddenSongId) ?? null : null;
-  const excludedIds = new Set([ghostSongId, hiddenSongId].filter(Boolean));
+  // Ghost takes precedence over hidden — don't render the same card twice
+  const effectiveHiddenId = hiddenSongId && hiddenSongId !== ghostSongId ? hiddenSongId : undefined;
+  const hiddenSong = effectiveHiddenId ? sorted.find(s => s.spotifyId === effectiveHiddenId) ?? null : null;
+  const excludedIds = new Set([ghostSongId, effectiveHiddenId].filter(Boolean));
   const solidSorted = excludedIds.size > 0
     ? sorted.filter(s => !excludedIds.has(s.spotifyId))
     : sorted;
