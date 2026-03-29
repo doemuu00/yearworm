@@ -590,7 +590,7 @@ export default function Timeline({
                 compact={compact}
                 stubLength={stubBase + connIdx * stubStep}
               />
-            );
+            ));
           })()}
 
           {/* ── Ghost card (contested, semi-transparent) ── */}
