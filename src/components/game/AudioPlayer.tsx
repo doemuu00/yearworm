@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Howl } from 'howler';
+import type { Team } from '@/lib/game/types';
 
 type PlayerState = 'idle' | 'playing' | 'paused' | 'ready';
 
@@ -17,7 +18,7 @@ interface AudioPlayerProps {
   onSongReady?: () => void;
   onSkip?: () => void;
   canSkip?: boolean;
-  teamColor?: string;
+  team?: Team;
 }
 
 export default function AudioPlayer({
@@ -31,8 +32,9 @@ export default function AudioPlayer({
   onSongReady,
   onSkip,
   canSkip = false,
-  teamColor = '#00d4aa',
+  team = 'A',
 }: AudioPlayerProps) {
+  const isA = team === 'A';
   const [state, setState] = useState<PlayerState>('idle');
   const [progress, setProgress] = useState(0);
   const [elapsed, setElapsed] = useState(0);
@@ -201,7 +203,7 @@ export default function AudioPlayer({
               {/* Progress arc */}
               {(state === 'playing' || state === 'paused') && (
                 <motion.circle
-                  className="text-primary"
+                  className={isA ? 'text-primary' : 'text-secondary'}
                   cx="80"
                   cy="80"
                   r={radius}
@@ -212,7 +214,9 @@ export default function AudioPlayer({
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   style={{
-                    filter: 'drop-shadow(0 0 12px rgba(40,223,181,0.5))',
+                    filter: isA
+                      ? 'drop-shadow(0 0 12px rgba(40,223,181,0.5))'
+                      : 'drop-shadow(0 0 12px rgba(208,188,255,0.5))',
                   }}
                 />
               )}
@@ -220,7 +224,7 @@ export default function AudioPlayer({
 
             {/* Center play button */}
             <motion.button
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br from-primary to-on-primary-container flex flex-col items-center justify-center text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)] active:scale-95 transition-all duration-200"
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br ${isA ? 'from-primary to-on-primary-container text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)]' : 'from-secondary to-on-secondary-container text-on-secondary shadow-[0_0_40px_rgba(208,188,255,0.4)]'} flex flex-col items-center justify-center active:scale-95 transition-all duration-200`}
               onClick={handleTap}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -232,7 +236,7 @@ export default function AudioPlayer({
                 {state === 'playing' ? 'pause' : 'play_arrow'}
               </span>
               {(state === 'playing' || state === 'paused') && (
-                <span className="text-[11px] font-mono font-bold -mt-1 text-on-primary/80">
+                <span className={`text-[11px] font-mono font-bold -mt-1 ${isA ? 'text-on-primary/80' : 'text-on-secondary/80'}`}>
                   {Math.ceil(timeRemaining)}s
                 </span>
               )}
@@ -242,7 +246,7 @@ export default function AudioPlayer({
             <AnimatePresence>
               {state === 'idle' && !noPreviewFlash && (
                 <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none border-2 border-primary/20"
+                  className={`absolute inset-0 rounded-full pointer-events-none border-2 ${isA ? 'border-primary/20' : 'border-secondary/20'}`}
                   initial={{ scale: 1, opacity: 0.4 }}
                   animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.1, 0.4] }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
@@ -251,7 +255,7 @@ export default function AudioPlayer({
               )}
               {state === 'playing' && (
                 <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none border-2 border-primary/40"
+                  className={`absolute inset-0 rounded-full pointer-events-none border-2 ${isA ? 'border-primary/40' : 'border-secondary/40'}`}
                   initial={{ scale: 1, opacity: 0.6 }}
                   animate={{ scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
                   transition={{ duration: 1.0, repeat: Infinity, ease: 'easeInOut' }}

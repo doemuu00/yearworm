@@ -351,7 +351,7 @@ export default function GamePage() {
                   onSongReady={handleSongReady}
                   onSkip={handleSkip}
                   canSkip={canSkip}
-                  teamColor="var(--color-primary)"
+                  team={currentTeam}
                 />
               )}
             </div>

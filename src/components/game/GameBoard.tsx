@@ -38,6 +38,11 @@ interface DraggableSongCardProps {
 export function DraggableSongCard({ song, team }: DraggableSongCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } =
     useDraggable({ id: 'current-song' });
+  const isA = team === 'A';
+  const border = isA ? 'border-primary/20 hover:border-primary/40' : 'border-secondary/20 hover:border-secondary/40';
+  const circleBg = isA ? 'bg-primary/5 border-primary/10' : 'bg-secondary/5 border-secondary/10';
+  const qColor = isA ? 'text-primary/40' : 'text-secondary/40';
+  const labelColor = isA ? 'text-primary bg-primary/10' : 'text-secondary bg-secondary/10';
 
   return (
     <motion.div
@@ -48,7 +53,7 @@ export function DraggableSongCard({ song, team }: DraggableSongCardProps) {
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ scale: 1, opacity: isDragging ? 0.3 : 1 }}
       transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-      className="w-52 h-64 glass-panel rounded-2xl border-2 border-primary/20 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden cursor-grab active:cursor-grabbing hover:border-primary/40 transition-colors select-none"
+      className={`w-52 h-64 glass-panel rounded-2xl border-2 ${border} flex flex-col items-center justify-center shadow-2xl relative overflow-hidden cursor-grab active:cursor-grabbing transition-colors select-none`}
       role="button"
       aria-label="Drag this song onto the timeline"
       tabIndex={0}
@@ -58,12 +63,12 @@ export function DraggableSongCard({ song, team }: DraggableSongCardProps) {
       <div className="absolute inset-0 shimmer animate-[shimmer_3s_infinite]" />
 
       {/* Question mark icon */}
-      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-4 border border-primary/10">
-        <span className="text-5xl font-headline font-black text-primary/40">?</span>
+      <div className={`w-20 h-20 rounded-full ${circleBg} flex items-center justify-center mb-4 border`}>
+        <span className={`text-5xl font-headline font-black ${qColor}`}>?</span>
       </div>
 
       {/* Label */}
-      <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+      <p className={`text-[10px] font-bold tracking-[0.2em] ${labelColor} uppercase px-3 py-1 rounded-full`}>
         {isDragging ? 'Drop on timeline' : 'Place In Timeline'}
       </p>
     </motion.div>
@@ -73,19 +78,25 @@ export function DraggableSongCard({ song, team }: DraggableSongCardProps) {
 /* ── Drag overlay card (floating copy under cursor) ────── */
 
 export function DragOverlayCard({ song, team }: { song: Song; team: Team }) {
+  const isA = team === 'A';
+  const border = isA ? 'border-primary/20' : 'border-secondary/20';
+  const circleBg = isA ? 'bg-primary/5 border-primary/10' : 'bg-secondary/5 border-secondary/10';
+  const qColor = isA ? 'text-primary/40' : 'text-secondary/40';
+  const labelColor = isA ? 'text-primary bg-primary/10' : 'text-secondary bg-secondary/10';
+  const glow = isA
+    ? '0 0 32px rgba(40, 223, 181, 0.5), 0 20px 40px rgba(0,0,0,0.5)'
+    : '0 0 32px rgba(208, 188, 255, 0.5), 0 20px 40px rgba(0,0,0,0.5)';
+
   return (
     <div
-      className="w-52 h-64 glass-panel rounded-2xl border-2 border-primary/20 flex flex-col items-center justify-center shadow-2xl relative overflow-hidden select-none"
-      style={{
-        boxShadow: '0 0 32px rgba(40, 223, 181, 0.5), 0 20px 40px rgba(0,0,0,0.5)',
-        transform: 'scale(1.05)',
-      }}
+      className={`w-52 h-64 glass-panel rounded-2xl border-2 ${border} flex flex-col items-center justify-center shadow-2xl relative overflow-hidden select-none`}
+      style={{ boxShadow: glow, transform: 'scale(1.05)' }}
     >
       <div className="absolute inset-0 shimmer animate-[shimmer_3s_infinite]" />
-      <div className="w-20 h-20 rounded-full bg-primary/5 flex items-center justify-center mb-4 border border-primary/10">
-        <span className="text-5xl font-headline font-black text-primary/40">?</span>
+      <div className={`w-20 h-20 rounded-full ${circleBg} flex items-center justify-center mb-4 border`}>
+        <span className={`text-5xl font-headline font-black ${qColor}`}>?</span>
       </div>
-      <p className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase bg-primary/10 px-3 py-1 rounded-full">
+      <p className={`text-[10px] font-bold tracking-[0.2em] ${labelColor} uppercase px-3 py-1 rounded-full`}>
         Drop on timeline
       </p>
     </div>
