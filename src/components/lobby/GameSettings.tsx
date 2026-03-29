@@ -50,7 +50,7 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
           step={5}
           formatValue={(v) => `${v}s`}
           onChange={(v) => update({ clipDurationSeconds: v })}
-          colorClass="secondary"
+          colorClass="primary"
         />
 
         <SliderSetting
@@ -62,7 +62,7 @@ export default function GameSettingsPanel({ settings, onSettingsChange }: GameSe
           step={15}
           formatValue={(v) => (v === 0 ? 'None' : `${v}s`)}
           onChange={(v) => update({ turnTimeLimitSeconds: v })}
-          colorClass="tertiary"
+          colorClass="primary"
         />
       </div>
     </div>

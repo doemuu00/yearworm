@@ -13,7 +13,8 @@ import { DEMO_SONGS } from '@/lib/game/demo-songs';
 import { DEFAULT_GAME_SETTINGS } from '@/lib/game/types';
 import type { Song, GameSettings } from '@/lib/game/types';
 
-const STEP_LABELS = ['Playlist', 'Settings', 'Teams'];
+const STEP_LABELS_FULL = ['Playlist', 'Settings', 'Teams'];
+const STEP_LABELS_DEMO = ['Settings', 'Teams'];
 
 // Slide transition variants keyed by direction
 const slideVariants = {
@@ -109,44 +110,48 @@ export default function LobbyPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.1 }}
         >
-          {/* Labels above bar */}
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
-              Step {String(step).padStart(2, '0')} &mdash; {STEP_LABELS[step - 1]}
-            </span>
-            {step === 3 && (
-              <span className="text-xs font-bold text-primary">
-                Ready to Play
-              </span>
-            )}
-          </div>
+          {(() => {
+            const labels = isDemo ? STEP_LABELS_DEMO : STEP_LABELS_FULL;
+            const displayStep = isDemo ? step - 1 : step; // demo: 2→1, 3→2
+            const totalSteps = labels.length;
+            const currentLabel = labels[displayStep - 1] ?? '';
+            const isLastStep = displayStep === totalSteps;
 
-          {/* Progress bar */}
-          <div className="flex h-1.5 w-full gap-1 rounded-full bg-surface-container-highest">
-            {STEP_LABELS.map((label, i) => {
-              const stepNum = i + 1;
-              const isComplete = step >= stepNum;
-              const isSkipped = isDemo && stepNum === 1;
+            return (
+              <>
+                {/* Labels above bar */}
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-on-surface-variant">
+                    Step {displayStep} &mdash; {currentLabel}
+                  </span>
+                  {isLastStep && (
+                    <span className="text-xs font-bold text-primary">
+                      Ready to Play
+                    </span>
+                  )}
+                </div>
 
-              // Opacity increases: 40% for step 1, 60% for step 2, 100% for step 3
-              const opacityClass = isSkipped
-                ? 'bg-surface-container-highest'
-                : isComplete
-                  ? stepNum === 1
-                    ? 'bg-primary/40'
-                    : stepNum === 2
-                      ? 'bg-primary/60'
-                      : 'bg-primary'
-                  : 'bg-transparent';
+                {/* Progress bar */}
+                <div className="flex h-1.5 w-full gap-1 rounded-full bg-surface-container-highest">
+                  {labels.map((label, i) => {
+                    const segmentStep = i + 1;
+                    const isComplete = displayStep >= segmentStep;
+                    const opacity = isComplete
+                      ? segmentStep === totalSteps ? 'bg-primary' : `bg-primary/${Math.round(40 + (60 * segmentStep / totalSteps))}`
+                      : 'bg-transparent';
 
-              return (
-                <div
-                  key={label}
-                  className={`h-full w-1/3 rounded-full transition-all duration-500 ${opacityClass}`}
-                />
-              );
-            })}
-          </div>
+                    return (
+                      <div
+                        key={label}
+                        className={`h-full rounded-full transition-all duration-500 ${opacity}`}
+                        style={{ width: `${100 / totalSteps}%` }}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            );
+          })()}
         </motion.div>
 
         {/* Step content with animated transitions */}
@@ -251,13 +256,6 @@ export default function LobbyPage() {
                 </div>
 
                 <div className="flex gap-3">
-                  <Button
-                    variant="ghost"
-                    size="md"
-                    onClick={() => goToStep(2)}
-                  >
-                    Back
-                  </Button>
                   <Button
                     variant="primary"
                     size="lg"
