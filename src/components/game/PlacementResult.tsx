@@ -135,7 +135,7 @@ export default function PlacementResult({
   const challengingTeam: Team = placingTeam === 'A' ? 'B' : 'A';
 
   // Determine scenario
-  let showCheck: boolean;
+  let showCheck: boolean | null; // null = no icon (mixed result)
   let accentColor: string;
   let headlineText: string;
   let subtitleText: string;
@@ -152,7 +152,8 @@ export default function PlacementResult({
       : 'The song was removed from the timeline';
   } else if (challengeSucceeded) {
     // Scenario 3: original wrong, challenger correct — card stolen
-    showCheck = false;
+    // Mixed result: no icon (one team right, one wrong)
+    showCheck = null;
     accentColor = teamColor(challengingTeam);
     headlineText = 'Challenge successful!';
     subtitleText = '';
@@ -172,7 +173,8 @@ export default function PlacementResult({
     ];
   } else {
     // Scenario 5: original was correct — challenge failed
-    showCheck = true;
+    // Mixed result: no icon (one team right, one wrong)
+    showCheck = null;
     accentColor = teamColor(placingTeam);
     headlineText = 'Challenge failed!';
     subtitleText = '';
@@ -213,14 +215,16 @@ export default function PlacementResult({
             transition={{ type: 'spring', damping: 22, stiffness: 260 }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Check / X icon */}
-            <div className="mb-5">
-              {showCheck ? (
-                <AnimatedCheckmark color={accentColor} />
-              ) : (
-                <AnimatedX color={accentColor} />
-              )}
-            </div>
+            {/* Check / X icon (hidden for mixed challenge results) */}
+            {showCheck !== null && (
+              <div className="mb-5">
+                {showCheck ? (
+                  <AnimatedCheckmark color={accentColor} />
+                ) : (
+                  <AnimatedX color={accentColor} />
+                )}
+              </div>
+            )}
 
             {/* Song card reveal */}
             <motion.div

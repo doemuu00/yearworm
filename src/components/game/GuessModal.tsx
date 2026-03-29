@@ -20,12 +20,12 @@ export default function GuessModal({ isOpen, mode, placingTeam, onYes, onNo }: G
     : 'bg-secondary text-on-secondary hover:bg-secondary/90';
 
   const title = mode === 'commit'
-    ? 'Song Guess'
+    ? 'Artist & Song Guess'
     : 'Verify Guess';
 
   const question = mode === 'commit'
-    ? `Did ${teamLabel} guess the artist and song?`
-    : `Was ${teamLabel}'s guess correct?`;
+    ? `Did ${teamLabel} correctly guess both the artist name and the song title?`
+    : `Was ${teamLabel}'s guess of the artist and song correct?`;
 
   const icon = mode === 'commit' ? 'music_note' : 'fact_check';
 
@@ -86,7 +86,7 @@ export default function GuessModal({ isOpen, mode, placingTeam, onYes, onNo }: G
                 onClick={onYes}
                 className={`flex-1 px-4 py-3 rounded-xl font-bold text-sm transition-all hover:scale-105 active:scale-95 ${btnAccentClass}`}
               >
-                {mode === 'commit' ? 'Yes, we guessed it' : 'Yes, correct!'}
+                {mode === 'commit' ? 'Yes, we did' : 'Yes, correct!'}
               </button>
             </div>
           </motion.div>
