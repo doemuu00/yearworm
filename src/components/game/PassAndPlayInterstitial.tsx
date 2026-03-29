@@ -7,16 +7,18 @@ import Button from '@/components/ui/Button';
 
 interface PassAndPlayInterstitialProps {
   team: Team;
+  teamLabel?: string;
   onReady: () => void;
 }
 
 export default function PassAndPlayInterstitial({
   team,
+  teamLabel,
   onReady,
 }: PassAndPlayInterstitialProps) {
   const color =
     team === 'A' ? DESIGN_TOKENS.colors.teamA : DESIGN_TOKENS.colors.teamB;
-  const label = team === 'A' ? 'Team A' : 'Team B';
+  const label = teamLabel || (team === 'A' ? 'Team A' : 'Team B');
 
   return (
     <motion.div

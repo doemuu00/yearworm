@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { useGameStore } from "@/stores/gameStore";
 import { getCurrentSong } from "@/lib/game/engine";
-import type { GameState } from "@/lib/game/types";
+import type { GameState, Team } from "@/lib/game/types";
 
 /**
  * Hook that wraps the Zustand game store and adds derived convenience values.
@@ -61,6 +61,15 @@ export function useGame() {
     [store.currentTeam, store.teamATokens, store.teamBTokens]
   );
 
+  const teamName = useCallback(
+    (team: Team | null) => {
+      if (team === 'A') return store.settings.teamAName || 'Team A';
+      if (team === 'B') return store.settings.teamBName || 'Team B';
+      return '';
+    },
+    [store.settings.teamAName, store.settings.teamBName]
+  );
+
   return {
     // Game state
     ...gameState,
@@ -69,6 +78,7 @@ export function useGame() {
     currentSong,
     currentTeamTimeline,
     currentTeamTokens,
+    teamName,
 
     // UI state
     isChallengeable: store.isChallengeable,

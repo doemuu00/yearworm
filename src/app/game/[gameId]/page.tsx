@@ -70,6 +70,7 @@ export default function GamePage() {
     commitGuess,
     confirmGuess,
     resetGuess,
+    teamName,
   } = useGame();
 
   /* ── Local UI state ───────────────────────────────────── */
@@ -345,7 +346,7 @@ export default function GamePage() {
           {/* LEFT COLUMN: Team A */}
           <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
             <TeamPanel
-              label="Team A"
+              label={teamName('A')}
               team="A"
               score={teamAScore}
               tokens={teamATokens}
@@ -374,12 +375,13 @@ export default function GamePage() {
               <>
                 <TurnIndicator
                   currentTeam={challengingTeam}
+                  teamLabel={teamName(challengingTeam)}
                   timeRemaining={undefined}
                   isTimerRunning={false}
                 />
                 <div className="flex flex-col items-center gap-4">
                   <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-                    Place on Team {lastPlacedTeam}&apos;s timeline
+                    Place on {teamName(lastPlacedTeam)}&apos;s timeline
                   </p>
                   {lastPlacedSong && (
                     <DraggableSongCard song={lastPlacedSong} team={challengingTeam} />
@@ -391,6 +393,7 @@ export default function GamePage() {
               <>
                 <TurnIndicator
                   currentTeam={currentTeam}
+                  teamLabel={teamName(currentTeam)}
                   timeRemaining={
                     phase === 'playing' && settings.turnTimeLimitSeconds > 0
                       ? turnTimer.timeRemaining
@@ -444,7 +447,7 @@ export default function GamePage() {
           {/* RIGHT COLUMN: Team B */}
           <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
             <TeamPanel
-              label="Team B"
+              label={teamName('B')}
               team="B"
               score={teamBScore}
               tokens={teamBTokens}
@@ -482,6 +485,7 @@ export default function GamePage() {
         isOpen={phase === 'guess-verify'}
         mode="verify"
         placingTeam={lastPlacedTeam}
+        teamLabel={teamName(lastPlacedTeam)}
         onYes={handleGuessVerifyYes}
         onNo={handleGuessVerifyNo}
       />
@@ -495,6 +499,8 @@ export default function GamePage() {
         canChallenge={canChallenge}
         onChallenge={handleChallenge}
         onDismiss={handleDismissChallenge}
+        placingTeamLabel={teamName(lastPlacedTeam)}
+        challengingTeamLabel={teamName(challengingTeam)}
       />
 
       {/* ── Modal: Placement result overlay ───────────── */}
@@ -506,6 +512,7 @@ export default function GamePage() {
         challengeSucceeded={placementResult?.challengeSucceeded}
         challengerCorrect={placementResult?.challengerCorrect}
         onDismiss={handleResultDismiss}
+        teamLabel={(t) => teamName(t)}
       />
 
       {/* ── Modal: Pass-and-play interstitial ───────────── */}
@@ -513,6 +520,7 @@ export default function GamePage() {
         {phase === 'pass-device' && !winner && (
           <PassAndPlayInterstitial
             team={currentTeam}
+            teamLabel={teamName(currentTeam)}
             onReady={handlePassDeviceReady}
           />
         )}
@@ -527,6 +535,8 @@ export default function GamePage() {
             teamBScore={teamBScore}
             cardsToWin={cardsToWin}
             onPlayAgain={handlePlayAgain}
+            winnerLabel={teamName(winner)}
+            loserLabel={teamName(winner === 'A' ? 'B' : 'A')}
           />
         )}
       </AnimatePresence>

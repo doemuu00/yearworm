@@ -12,6 +12,8 @@ interface ChallengeModalProps {
   canChallenge: boolean;
   onChallenge: () => void;
   onDismiss: () => void;
+  placingTeamLabel?: string;
+  challengingTeamLabel?: string;
 }
 
 export default function ChallengeModal({
@@ -21,7 +23,11 @@ export default function ChallengeModal({
   canChallenge,
   onChallenge,
   onDismiss,
+  placingTeamLabel,
+  challengingTeamLabel,
 }: ChallengeModalProps) {
+  const placerName = placingTeamLabel || `Team ${placingTeam}`;
+  const challengerName = challengingTeamLabel || `Team ${challengingTeam}`;
   // Lock scroll
   useEffect(() => {
     if (isOpen) {
@@ -77,7 +83,7 @@ export default function ChallengeModal({
 
             {placingTeam && (
               <p className="text-sm text-on-surface-variant text-center">
-                Team {placingTeam} placed a song. Team {challengingTeam}, do you want to challenge?
+                {placerName} placed a song. {challengerName}, do you want to challenge?
               </p>
             )}
 

@@ -67,9 +67,10 @@ export default function LobbyPage() {
 
   const handleStartGame = useCallback(() => {
     const shuffledSongs = shuffle(songs);
-    useGameStore.getState().initGame(shuffledSongs, settings);
+    const gameSettings = { ...settings, teamAName: teamAName || 'Team A', teamBName: teamBName || 'Team B' };
+    useGameStore.getState().initGame(shuffledSongs, gameSettings);
     router.push('/game/local');
-  }, [songs, settings, router]);
+  }, [songs, settings, teamAName, teamBName, router]);
 
   // Determine the minimum step the user can go back to
   const minStep = isDemo ? 2 : 1;

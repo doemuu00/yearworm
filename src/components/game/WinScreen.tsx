@@ -11,6 +11,8 @@ interface WinScreenProps {
   teamBScore: number;
   cardsToWin: number;
   onPlayAgain: () => void;
+  winnerLabel?: string;
+  loserLabel?: string;
 }
 
 /* Simple confetti particle */
@@ -49,6 +51,8 @@ export default function WinScreen({
   teamBScore,
   cardsToWin,
   onPlayAgain,
+  winnerLabel,
+  loserLabel,
 }: WinScreenProps) {
   const color =
     winner === 'A'
@@ -190,7 +194,7 @@ export default function WinScreen({
                 }}
                 transition={{ duration: 2, repeat: Infinity }}
               >
-                Team {winner} Wins!
+                {winnerLabel || `Team ${winner}`} Wins!
               </motion.h1>
             </motion.div>
 
@@ -211,7 +215,7 @@ export default function WinScreen({
                     className="text-xs font-bold uppercase"
                     style={{ color }}
                   >
-                    Team {winner}
+                    {winnerLabel || `Team ${winner}`}
                   </p>
                   <p
                     className="text-3xl font-black"
@@ -230,7 +234,7 @@ export default function WinScreen({
                     className="text-xs font-bold uppercase"
                     style={{ color: loserColor }}
                   >
-                    Team {winner === 'A' ? 'B' : 'A'}
+                    {loserLabel || `Team ${winner === 'A' ? 'B' : 'A'}`}
                   </p>
                   <p
                     className="text-3xl font-black"

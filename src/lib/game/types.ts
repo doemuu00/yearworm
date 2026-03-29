@@ -41,6 +41,9 @@ export interface GameSettings {
   tokensToChallenge: number;
   /** Tokens required to skip the current song */
   tokensToSkip: number;
+  /** Custom team names */
+  teamAName: string;
+  teamBName: string;
 }
 
 export type GameActionType =
@@ -71,6 +74,8 @@ export const DEFAULT_GAME_SETTINGS: GameSettings = {
   tokensPerCorrectGuess: 1,
   tokensToChallenge: 1,
   tokensToSkip: 1,
+  teamAName: 'Team A',
+  teamBName: 'Team B',
 };
 
 export const DESIGN_TOKENS = {

@@ -7,13 +7,14 @@ interface GuessModalProps {
   isOpen: boolean;
   mode: 'commit' | 'verify';
   placingTeam: Team | null;
+  teamLabel?: string;
   onYes: () => void;
   onNo: () => void;
 }
 
-export default function GuessModal({ isOpen, mode, placingTeam, onYes, onNo }: GuessModalProps) {
+export default function GuessModal({ isOpen, mode, placingTeam, teamLabel: label, onYes, onNo }: GuessModalProps) {
   const isPrimary = placingTeam === 'A';
-  const teamLabel = `Team ${placingTeam}`;
+  const teamLabel = label || `Team ${placingTeam}`;
   const accentClass = isPrimary ? 'text-primary' : 'text-secondary';
   const btnAccentClass = isPrimary
     ? 'bg-primary text-on-primary hover:bg-primary/90'

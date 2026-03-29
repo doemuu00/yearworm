@@ -13,12 +13,13 @@ interface PlacementResultProps {
   challengeSucceeded?: boolean; // true = challenger was right (placement was wrong)
   challengerCorrect?: boolean; // whether the challenger's placement was correct
   onDismiss: () => void;
+  teamLabel?: (team: Team) => string;
 }
 
 const teamColor = (team: Team) =>
   team === 'A' ? DESIGN_TOKENS.colors.teamA : DESIGN_TOKENS.colors.teamB;
 
-const teamLabel = (team: Team) => `Team ${team}`;
+const defaultTeamLabel = (team: Team) => `Team ${team}`;
 
 /* ── SVG draw-on checkmark ────────────────────────────── */
 function AnimatedCheckmark({ color }: { color: string }) {
@@ -116,7 +117,9 @@ export default function PlacementResult({
   challengeSucceeded,
   challengerCorrect,
   onDismiss,
+  teamLabel: teamLabelFn,
 }: PlacementResultProps) {
+  const teamLabel = teamLabelFn || defaultTeamLabel;
   // Lock scroll
   useEffect(() => {
     if (isOpen) {

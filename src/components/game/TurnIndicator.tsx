@@ -6,19 +6,22 @@ import { DESIGN_TOKENS } from '@/lib/game/types';
 
 interface TurnIndicatorProps {
   currentTeam: Team;
+  teamLabel?: string;
   timeRemaining?: number;
   isTimerRunning?: boolean;
 }
 
 export default function TurnIndicator({
   currentTeam,
+  teamLabel,
   timeRemaining,
   isTimerRunning = false,
 }: TurnIndicatorProps) {
   const isPrimary = currentTeam === 'A';
   const colorClass = isPrimary ? 'text-primary' : 'text-secondary';
   const glowClass = isPrimary ? 'vibe-glow' : 'glow-secondary';
-  const vibeLabel = isPrimary ? "TEAM A'S VIBE" : "TEAM B'S VIBE";
+  const name = teamLabel || (isPrimary ? 'Team A' : 'Team B');
+  const vibeLabel = `${name}'s Vibe`.toUpperCase();
   const isLow = timeRemaining !== undefined && timeRemaining <= 5;
 
   return (

@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 
+const MAX_TEAM_NAME_LENGTH = 12;
+
 interface TeamSetupProps {
   teamAName: string;
   teamBName: string;
@@ -29,18 +31,15 @@ export default function TeamSetup({
           <div className="w-16 h-16 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
             <span className="material-symbols-outlined text-primary text-3xl">electric_bolt</span>
           </div>
-          <div className="text-center">
-            <h3 className="font-display text-2xl font-bold text-primary">
-              Team A
-            </h3>
-            <p className="text-on-surface-variant text-sm mt-0.5">Primary Challengers</p>
-          </div>
+          <h3 className="font-display text-2xl font-bold text-primary">
+            {teamAName || 'Team A'}
+          </h3>
         </div>
         <input
           type="text"
           value={teamAName}
-          onChange={(e) => onTeamANameChange(e.target.value)}
-          maxLength={20}
+          onChange={(e) => onTeamANameChange(e.target.value.slice(0, MAX_TEAM_NAME_LENGTH))}
+          maxLength={MAX_TEAM_NAME_LENGTH}
           placeholder="Team A"
           className="w-full bg-surface-container-highest border-0 rounded-md py-4 px-6 text-on-surface text-base
                      outline-none transition-all placeholder-on-surface-variant/40
@@ -60,18 +59,15 @@ export default function TeamSetup({
           <div className="w-16 h-16 rounded-full bg-secondary/20 border border-secondary/30 flex items-center justify-center">
             <span className="material-symbols-outlined text-secondary text-3xl">auto_awesome</span>
           </div>
-          <div className="text-center">
-            <h3 className="font-display text-2xl font-bold text-secondary">
-              Team B
-            </h3>
-            <p className="text-on-surface-variant text-sm mt-0.5">Sonic Rivals</p>
-          </div>
+          <h3 className="font-display text-2xl font-bold text-secondary">
+            {teamBName || 'Team B'}
+          </h3>
         </div>
         <input
           type="text"
           value={teamBName}
-          onChange={(e) => onTeamBNameChange(e.target.value)}
-          maxLength={20}
+          onChange={(e) => onTeamBNameChange(e.target.value.slice(0, MAX_TEAM_NAME_LENGTH))}
+          maxLength={MAX_TEAM_NAME_LENGTH}
           placeholder="Team B"
           className="w-full bg-surface-container-highest border-0 rounded-md py-4 px-6 text-on-surface text-base
                      outline-none transition-all placeholder-on-surface-variant/40
