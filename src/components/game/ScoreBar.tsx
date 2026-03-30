@@ -46,7 +46,7 @@ function TeamScore({
 
   return (
     <div
-      className={`flex items-center gap-3 px-3 py-1.5 rounded-lg border transition-all duration-300 ${
+      className={`flex items-center gap-1.5 px-2 py-1 rounded-lg border transition-all duration-300 ${
         isActive ? borderColor : `${borderInactive} opacity-50`
       }`}
       style={{
@@ -106,7 +106,7 @@ export default function ScoreBar({
 
   return (
     <div
-      className="sticky top-16 z-40 flex items-center justify-between gap-2 px-4 py-2"
+      className="shrink-0 flex items-center justify-between gap-1 px-2 py-1.5"
       style={{
         background: 'rgba(10, 14, 26, 0.85)',
         backdropFilter: 'blur(12px)',

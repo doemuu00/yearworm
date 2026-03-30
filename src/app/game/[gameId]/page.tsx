@@ -322,7 +322,7 @@ export default function GamePage() {
   }
 
   return (
-    <div className="relative flex min-h-dvh flex-col bg-surface-container-lowest">
+    <div className="relative flex h-dvh flex-col overflow-hidden bg-surface-container-lowest">
       {/* ── Top App Bar ──────────────────────────────────── */}
       <TopAppBar />
 
@@ -333,7 +333,7 @@ export default function GamePage() {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <main className="flex-1 flex flex-col pt-16">
+        <main className="flex-1 flex flex-col pt-12 min-h-0 overflow-hidden">
           {/* Score bar */}
           <ScoreBar
             teamALabel={teamName('A')}
@@ -357,7 +357,7 @@ export default function GamePage() {
           />
 
           {/* Single timeline — full width */}
-          <div className="relative flex-1 min-h-[60vh] z-50">
+          <div className="relative flex-1 min-h-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayedTeam}

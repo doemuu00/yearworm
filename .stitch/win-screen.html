@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#dfe2f3",
+                        "on-tertiary": "#3e2e00",
+                        "tertiary-fixed-dim": "#f3c01a",
+                        "on-tertiary-fixed-variant": "#594400",
+                        "surface-container": "#1b1f2c",
+                        "surface-bright": "#353946",
+                        "primary-fixed-dim": "#28dfb5",
+                        "on-tertiary-container": "#997700",
+                        "primary-fixed": "#55fcd0",
+                        "on-primary-fixed-variant": "#00513f",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "tertiary-fixed": "#ffdf93",
+                        "on-surface-variant": "#c7c6cc",
+                        "primary-container": "#00120c",
+                        "on-secondary-fixed": "#23005c",
+                        "surface": "#0f131f",
+                        "background": "#0f131f",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "inverse-on-surface": "#2c303d",
+                        "surface-container-lowest": "#0a0e1a",
+                        "error-container": "#93000a",
+                        "surface-dim": "#0f131f",
+                        "on-secondary": "#3c0091",
+                        "tertiary-container": "#140d00",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed": "#e9ddff",
+                        "surface-container-highest": "#313442",
+                        "surface-variant": "#313442",
+                        "on-secondary-container": "#c4abff",
+                        "on-tertiary-fixed": "#241a00",
+                        "primary": "#28dfb5",
+                        "outline-variant": "#46464c",
+                        "surface-container-high": "#262a37",
+                        "on-surface": "#dfe2f3",
+                        "inverse-primary": "#006b55",
+                        "surface-container-low": "#171b28",
+                        "on-background": "#dfe2f3",
+                        "secondary": "#d0bcff",
+                        "on-error": "#690005",
+                        "tertiary": "#f3c01a",
+                        "outline": "#909096",
+                        "on-primary": "#00382b",
+                        "surface-tint": "#28dfb5",
+                        "secondary-container": "#571bc1",
+                        "on-primary-container": "#008c6f",
+                        "on-primary-fixed": "#002118"
+                    },
+                    fontFamily: {
+                        "headline": ["Plus Jakarta Sans"],
+                        "body": ["Be Vietnam Pro"],
+                        "label": ["Be Vietnam Pro"]
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tactile-bounce:active {
+            transform: scale(0.9);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(40, 223, 181, 0.2);
+            border-radius: 10px;
+        }
+        /* Confetti effect placeholder via gradient background */
+        .confetti-overlay {
+            background-image: 
+                radial-gradient(circle at 20% 30%, #28dfb5 1px, transparent 1px),
+                radial-gradient(circle at 80% 40%, #d0bcff 1px, transparent 1px),
+                radial-gradient(circle at 40% 80%, #f3c01a 1px, transparent 1px),
+                radial-gradient(circle at 70% 10%, #28dfb5 1px, transparent 1px),
+                radial-gradient(circle at 10% 90%, #d0bcff 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface font-body h-screen w-screen overflow-hidden selection:bg-primary/30">
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0a0e1a]/60 backdrop-blur-xl">
+<div class="text-2xl font-black text-[#28dfb5] drop-shadow-[0_0_8px_rgba(40,223,181,0.4)] font-headline tracking-tight">
+            Yearworm
+        </div>
+<div class="flex gap-4">
+<button class="text-[#dfe2f3] hover:bg-[#28dfb5]/10 hover:text-[#28dfb5] transition-all p-2 rounded-full active:scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="text-[#dfe2f3] hover:bg-[#28dfb5]/10 hover:text-[#28dfb5] transition-all p-2 rounded-full active:scale-95 duration-200 ease-out">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Win Canvas -->
+<main class="relative h-screen w-full pt-16 pb-4 px-6 flex flex-row gap-6 overflow-hidden bg-surface-container-lowest">
+<!-- Background Atmospheric Perspective -->
+<div class="fixed inset-0 pointer-events-none confetti-overlay opacity-30"></div>
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 blur-[120px] rounded-full pointer-events-none"></div>
+<!-- Left Column: Celebration & Score (Focus Area) -->
+<div class="flex-1 flex flex-col items-center justify-center space-y-4 z-10">
+<!-- Animated Trophy -->
+<div class="relative group">
+<div class="absolute -inset-4 bg-tertiary/20 blur-2xl rounded-full group-hover:bg-tertiary/40 transition-all"></div>
+<div class="relative bg-surface-container-high/60 backdrop-blur-xl p-6 rounded-full shadow-[0_0_40px_rgba(243,192,26,0.2)] animate-bounce border border-tertiary/10">
+<span class="material-symbols-outlined text-6xl text-tertiary" style="font-variation-settings: 'FILL' 1;">emoji_events</span>
+</div>
+</div>
+<div class="text-center">
+<h2 class="font-headline text-on-surface-variant text-sm font-semibold uppercase tracking-[0.2em] mb-1">Victory Sequence</h2>
+<h1 class="font-headline text-5xl font-black text-primary drop-shadow-[0_0_12px_rgba(40,223,181,0.5)] tracking-tighter">
+                    NEON VIBERS
+                </h1>
+<p class="text-on-surface/80 font-medium text-lg mt-2 italic">Flawless Chronology!</p>
+</div>
+<!-- Score Comparison Badge -->
+<div class="flex items-center gap-4 bg-surface-container-low/80 backdrop-blur-md px-6 py-3 rounded-xl border border-outline-variant/10 shadow-xl">
+<div class="text-center">
+<div class="text-xs font-bold text-primary/70 uppercase">Team A</div>
+<div class="text-2xl font-black text-primary">2,450</div>
+</div>
+<div class="h-8 w-px bg-outline-variant/20"></div>
+<div class="text-center">
+<div class="text-xs font-bold text-secondary/70 uppercase">Team B</div>
+<div class="text-2xl font-black text-secondary">1,820</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-4 w-full max-w-xs mt-4">
+<button class="flex-1 bg-gradient-to-br from-primary to-on-primary-container text-on-primary font-headline font-bold h-12 rounded-xl shadow-[0_0_20px_rgba(40,223,181,0.3)] hover:brightness-110 active:scale-95 transition-all">
+                    Play Again
+                </button>
+<button class="flex-1 bg-surface-bright/20 backdrop-blur-md text-on-surface font-headline font-bold h-12 rounded-xl border border-outline-variant/20 hover:bg-surface-bright/40 active:scale-95 transition-all">
+                    Home
+                </button>
+</div>
+</div>
+<!-- Right Column: Timeline Recap (Scrollable) -->
+<div class="w-1/2 flex flex-col z-10 h-full max-h-[calc(100vh-100px)]">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-headline font-bold text-lg flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">history</span>
+                    Timeline Recap
+                </h3>
+<span class="text-xs font-bold bg-primary/20 text-primary px-2 py-1 rounded-md">8/8 Correct</span>
+</div>
+<div class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3">
+<!-- Recap Item 1 -->
+<div class="flex items-center gap-4 bg-surface-container-high/40 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/10 group hover:bg-surface-container-high/60 transition-colors">
+<div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Modern album cover art with abstract synthwave gradients and minimalist typography" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDwgDSEPXyoGvOaR2fBboYArjl80AU2w38lAStLQmSTogaDGa9Y1mJDGwKKDfrTVzRiS32vkSrN9NsyqprPOB2UHZEIJ4gQ2_cZE881V96e1MJ9foAqLuUaGFEYGXNCqVGrsHMikMWF6NDKYnb1zMWltgBfqCC9p57WqsL3-zK0vt-108QP2qi_jSweb2K-gKkm05bV0_-CKJ7BXu9UK7iRMY9cZHLB0howV2Ll5MKDA1dTbBQNGb-dH-WQ2zqI-na8vv2KM25vRXI"/>
+<div class="absolute inset-0 bg-primary/10 group-hover:bg-transparent transition-colors"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-tertiary text-[10px] font-bold uppercase tracking-widest mb-0.5">1984</div>
+<div class="text-on-surface font-bold truncate">Purple Rain</div>
+<div class="text-on-surface-variant text-xs truncate">Prince</div>
+</div>
+<div class="bg-primary/20 p-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Recap Item 2 -->
+<div class="flex items-center gap-4 bg-surface-container-high/40 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/10 group hover:bg-surface-container-high/60 transition-colors">
+<div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Vintage soul record sleeve with warm earth tones and distressed paper texture" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCbuLZ5ktrKXQ1xO_wykT3Jm0Sv4kSHnNlNJ4kmuQlKz8k2oXIlkhdgbqemevXk7IlFMijMOiBXhDQkKEI6k4hDIuDs2gj895eDSx0FxkEAfk1NScgrRg-7XwuWg6ctAZRiO3WwOrH0Z5vN5wj8_6puwcfbVqhywvBsuQiIKJKNkbCfl5uwyBtrcsxM_slJV2tCV79K4Ojtn-TQon6FxyeocU1LHASasNjJQ2LWCJJyAZRPOJyPZerlIbTeR5xLERJ9b59jGfjkqqQ"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-tertiary text-[10px] font-bold uppercase tracking-widest mb-0.5">1991</div>
+<div class="text-on-surface font-bold truncate">Smells Like Teen Spirit</div>
+<div class="text-on-surface-variant text-xs truncate">Nirvana</div>
+</div>
+<div class="bg-primary/20 p-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Recap Item 3 -->
+<div class="flex items-center gap-4 bg-surface-container-high/40 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/10 group hover:bg-surface-container-high/60 transition-colors">
+<div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Pop music album art with vibrant pink and blue lighting on a stylish artist portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBs2zy24akdDtBuSq9n2UNIcb2fwGEmg3cgD4Z-BVms7bw0b6jhEUXHOzdvGcVZCXvIDCUBYQ5lEsjUsoTDc_gbpRL8C7V1YY2OaIMxh5O_hJPM8ndXjxLz3sXL58n-o4IwOD8bBAY6S8vVGpVtIFWLsFAvX9WU9wxMn-5ywowB1TkS1R-FmwhuozQ6ClYPShRIPxaWfvYvAjhEY9cYC9aDFwmfRtK8ycyVLsFOx7_OTkoFPIxeTqrinJyPYuif9IQ6G5Y8fUipLnw"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-tertiary text-[10px] font-bold uppercase tracking-widest mb-0.5">1999</div>
+<div class="text-on-surface font-bold truncate">...Baby One More Time</div>
+<div class="text-on-surface-variant text-xs truncate">Britney Spears</div>
+</div>
+<div class="bg-primary/20 p-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Recap Item 4 -->
+<div class="flex items-center gap-4 bg-surface-container-high/40 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/10 group hover:bg-surface-container-high/60 transition-colors">
+<div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Indie rock album cover with grainy film photo of an empty street at twilight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWl-zIuLtTUNgQ8geO-yi7Kb0v_4PSWlfhi9I-J8NlgyTeO6R0ppQHagShZgvBmJ_qJDXu6fV_OuBPQqdKvqijYz_YMmeDyjOfo0CtRj710PY3L9fDrW7-KMJbfgkm2ux7aDIKaVOmr3tjtqbBMYczWh09X4VZMkAuAjhPqdmRW0PtVyzWU_tfWdmnZ5bmvI9kyLC5Y2MZ-ZFToHoFL7pqE_gS1zm77TOKxAnkbJxGcKOS5zeH8V-HvqRKX3CI-8i5u0Aa6r4R_90"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-tertiary text-[10px] font-bold uppercase tracking-widest mb-0.5">2010</div>
+<div class="text-on-surface font-bold truncate">Dancing on My Own</div>
+<div class="text-on-surface-variant text-xs truncate">Robyn</div>
+</div>
+<div class="bg-primary/20 p-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Recap Item 5 -->
+<div class="flex items-center gap-4 bg-surface-container-high/40 backdrop-blur-md p-3 rounded-2xl border border-outline-variant/10 group hover:bg-surface-container-high/60 transition-colors">
+<div class="relative w-14 h-14 rounded-lg overflow-hidden shrink-0 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="Electronic music cover with digital glitch patterns and neon green accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE2XljzVc54IJlaawAIkMOJWUhgpjIlWnTzun0h0A4CMoHB1s1E_d20i-fLDzCVWagBeDh0Qek4g69aRfQDfsSnak22RFC7G6ox5MwQIcd5NjlPVIIMBhcJ9Pe6OUSeXbB42UyxTW8JYfKHz-PGWBuaTaDW0JTVeX9emK9D26v_TMUBxsZYuSbXV6e5mifXs6HyYHJYpMGxxEJ0EIL4u9EfWIuD6KngzHPCH5FiLsV-jDHQqvYoZsRCfIqUWKwVqch7rWa_tl6wL0"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="text-tertiary text-[10px] font-bold uppercase tracking-widest mb-0.5">2023</div>
+<div class="text-on-surface font-bold truncate">Flowers</div>
+<div class="text-on-surface-variant text-xs truncate">Miley Cyrus</div>
+</div>
+<div class="bg-primary/20 p-1 rounded-full">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Invisible/Suppressed for Focus Journey but maintained for structure reference) -->
+<!-- Hidden via md:hidden or just omitted to prioritize the Canvas as per "Relevance Check" rules -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-[#0a0e1a]/80 backdrop-blur-2xl rounded-t-[2rem] shadow-[0_-12px_32px_rgba(40,223,181,0.08)] pointer-events-auto">
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined">videogame_asset</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Game</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Teams</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined">stars</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Shop</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#28dfb5]/20 text-[#28dfb5] rounded-full px-6 py-2 shadow-[0_0_15px_rgba(40,223,181,0.3)] scale-90 duration-150 tactile-bounce" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">History</span>
+</a>
+</nav>
+</body></html>

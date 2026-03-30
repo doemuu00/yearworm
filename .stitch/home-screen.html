@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-dim": "#0f131f",
+            "surface-container-lowest": "#0a0e1a",
+            "secondary-container": "#571bc1",
+            "background": "#0f131f",
+            "inverse-on-surface": "#2c303d",
+            "inverse-surface": "#dfe2f3",
+            "on-background": "#dfe2f3",
+            "secondary-fixed": "#e9ddff",
+            "on-primary-fixed": "#002118",
+            "on-tertiary-fixed": "#241a00",
+            "tertiary": "#f3c01a",
+            "primary": "#28dfb5",
+            "on-secondary": "#3c0091",
+            "error": "#ffb4ab",
+            "on-primary-fixed-variant": "#00513f",
+            "on-tertiary": "#3e2e00",
+            "on-primary": "#00382b",
+            "surface-variant": "#313442",
+            "on-secondary-fixed": "#23005c",
+            "surface-container": "#1b1f2c",
+            "tertiary-fixed": "#ffdf93",
+            "tertiary-container": "#140d00",
+            "tertiary-fixed-dim": "#f3c01a",
+            "on-surface-variant": "#c7c6cc",
+            "primary-fixed": "#55fcd0",
+            "inverse-primary": "#006b55",
+            "on-error": "#690005",
+            "surface-container-low": "#171b28",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-surface": "#dfe2f3",
+            "surface-tint": "#28dfb5",
+            "primary-container": "#00120c",
+            "on-error-container": "#ffdad6",
+            "surface-bright": "#353946",
+            "error-container": "#93000a",
+            "surface-container-highest": "#313442",
+            "on-secondary-container": "#c4abff",
+            "outline": "#909096",
+            "surface-container-high": "#262a37",
+            "primary-fixed-dim": "#28dfb5",
+            "secondary": "#d0bcff",
+            "outline-variant": "#46464c",
+            "on-primary-container": "#008c6f",
+            "on-tertiary-fixed-variant": "#594400",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface": "#0f131f",
+            "on-tertiary-container": "#997700"
+          },
+          fontFamily: {
+            "headline": ["Plus Jakarta Sans"],
+            "body": ["Be Vietnam Pro"],
+            "label": ["Be Vietnam Pro"]
+          },
+          borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .neon-glow-primary {
+      text-shadow: 0 0 10px rgba(40, 223, 181, 0.5), 0 0 20px rgba(40, 223, 181, 0.3);
+    }
+    .glass-panel {
+      background: rgba(49, 52, 66, 0.6);
+      backdrop-filter: blur(20px);
+    }
+    .music-note {
+      position: absolute;
+      opacity: 0.15;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body min-h-screen selection:bg-primary/30">
+<!-- Floating Background Elements -->
+<div class="fixed inset-0 overflow-hidden z-0">
+<div class="absolute top-20 left-[10%] music-note text-primary">
+<span class="material-symbols-outlined text-6xl">music_note</span>
+</div>
+<div class="absolute top-60 right-[15%] music-note text-secondary">
+<span class="material-symbols-outlined text-8xl">album</span>
+</div>
+<div class="absolute bottom-40 left-[20%] music-note text-tertiary">
+<span class="material-symbols-outlined text-7xl">graphic_eq</span>
+</div>
+<div class="absolute top-[40%] left-[45%] music-note text-primary">
+<span class="material-symbols-outlined text-5xl">audiotrack</span>
+</div>
+<!-- Ambient Radial Gradients -->
+<div class="absolute -top-40 -left-40 w-96 h-96 bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-secondary/5 rounded-full blur-[150px]"></div>
+</div>
+<!-- Shared Component: TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0a0e1a]/60 backdrop-blur-xl shadow-[0_12_32px_rgba(40,223,181,0.08)]">
+<div class="font-['Plus_Jakarta_Sans'] font-bold tracking-tight text-2xl font-black text-[#28dfb5] tracking-tighter">
+      Yearworm
+    </div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-[#28dfb5]/10 transition-colors active:scale-95 duration-200 text-[#dfe2f3]/70">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="p-2 rounded-full hover:bg-[#28dfb5]/10 transition-colors active:scale-95 duration-200 text-[#dfe2f3]/70">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="relative z-10 pt-32 pb-32 px-6 flex flex-col items-center max-w-4xl mx-auto">
+<!-- Hero Section -->
+<section class="w-full text-center mb-16">
+<div class="inline-block mb-4 px-4 py-1.5 rounded-full bg-surface-container-high border border-outline-variant/15 text-xs font-semibold tracking-widest uppercase text-secondary">
+        Now Playing: Global 50
+      </div>
+<h1 class="font-headline text-6xl md:text-8xl font-black text-primary mb-6 neon-glow-primary tracking-tighter">
+        Yearworm
+      </h1>
+<p class="font-headline text-xl md:text-2xl text-on-surface-variant font-medium max-w-lg mx-auto leading-relaxed">
+        Guess the song, <span class="text-secondary italic">build the timeline.</span>
+</p>
+</section>
+<!-- Main Interaction Cards (Asymmetric Bento) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6 w-full mb-12">
+<!-- Primary Action: Quick Play -->
+<div class="md:col-span-8 group relative overflow-hidden rounded-lg p-8 glass-panel flex flex-col justify-between h-[320px] shadow-[0_12px_32px_rgba(40,223,181,0.08)] cursor-pointer active:scale-[0.98] transition-all">
+<div class="absolute top-0 right-0 p-8 text-primary/10 group-hover:text-primary/20 transition-colors">
+<span class="material-symbols-outlined text-[160px] leading-none select-none">play_arrow</span>
+</div>
+<div class="relative z-10">
+<span class="material-symbols-outlined text-primary text-4xl mb-4" data-weight="fill">bolt</span>
+<h2 class="font-headline text-4xl font-bold text-on-surface mb-2">Quick Play</h2>
+<p class="text-on-surface-variant max-w-xs">Jump into a random era and start guessing songs immediately.</p>
+</div>
+<button class="w-fit px-8 py-4 bg-gradient-to-br from-primary to-on-primary-container text-on-primary font-headline font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all">
+          Start Guessing
+        </button>
+</div>
+<!-- Secondary: Create Game -->
+<div class="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-primary/30 transition-colors cursor-pointer group">
+<div>
+<span class="material-symbols-outlined text-secondary text-3xl mb-4">add_circle</span>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Create</h3>
+<p class="text-sm text-on-surface-variant">Host a private session with friends and custom genres.</p>
+</div>
+<div class="mt-4 flex justify-end">
+<div class="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center text-secondary group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+<span class="material-symbols-outlined">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Join Game -->
+<div class="md:col-span-4 glass-panel rounded-lg p-6 flex flex-col justify-between border border-outline-variant/10 hover:border-tertiary/30 transition-colors cursor-pointer group">
+<div>
+<span class="material-symbols-outlined text-tertiary text-3xl mb-4">group</span>
+<h3 class="font-headline text-2xl font-bold text-on-surface mb-1">Join</h3>
+<p class="text-sm text-on-surface-variant">Enter a lobby code to play with your crew.</p>
+</div>
+<div class="mt-4 flex justify-end">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary group-hover:bg-tertiary group-hover:text-on-tertiary transition-all">
+<span class="material-symbols-outlined">login</span>
+</div>
+</div>
+</div>
+<!-- History / Stats Snippet -->
+<div class="md:col-span-8 glass-panel rounded-lg p-8 flex items-center gap-8 border border-outline-variant/10">
+<div class="hidden sm:block w-24 h-24 rounded-full overflow-hidden flex-shrink-0 bg-surface-container-highest">
+<img alt="Abstract musical waveform" class="w-full h-full object-cover" data-alt="Close up of a vibrant digital audio waveform with neon teal and purple light peaks on a dark background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDdzRnJ1XFW_FR1isGMo8DBTRSzjyp7bHzvSwnPENC1mNBYIzT9s548AaO5So3IaiZ8gTXfV6sEMkhAyxldQYmzQH0uooKV66Kkgth_I5-_I5_gSm1AKb0AP8tN9setBAHJVoj6U3HYMFI8354ySnhCxthuE3HQNlA336SDnOeXjFHvN3DGs8Eyb7uV3Psa7GSgP94g5mSzSViMJ0jPZjJ4XDCSzIi7L630iAWYLcNKy3T9RuNqRl3YwpbynMEOkCiU2fzsPqQ-8cc"/>
+</div>
+<div class="flex-grow">
+<div class="flex justify-between items-center mb-4">
+<h4 class="font-headline font-bold text-lg">Daily Streak</h4>
+<span class="text-tertiary font-bold">5 Days</span>
+</div>
+<div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-tertiary w-[70%]" style="box-shadow: 0 0 10px rgba(243, 192, 26, 0.4);"></div>
+</div>
+<div class="flex justify-between mt-2 text-xs text-on-surface-variant font-medium">
+<span>Progress to Rank: Vinyl Master</span>
+<span>700/1000 XP</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Collections -->
+<div class="w-full">
+<h3 class="font-headline text-xl font-bold mb-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+        Featured Eras
+      </h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group cursor-pointer">
+<img alt="80s aesthetics" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Retro 80s aesthetic with neon pink sunset grid and palm tree silhouettes in synthwave style" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-20pyMslDRrs5tjPne8PZ9LAD8ndZu-uXVu4zdxnRKyBPyOA8VKWRCZPxnkAE1VF-H47a-FeXWMjlABncidnOpNMi9Kf0oDOMutuw-qWiHMghEPcVYkF7Lr57NkNovMpkzjroH5_tXyQaEzSf_YLdLzTNTakbLnSvipMVHJArsdQhAYgUmSKYLRJLInGLAcV3rW-x3CvQxtCjQJtoTwAmZiD2sRpRMJRcEAT1KXm-Z_9UvsyMfja-3WRGB65EmwoivWvAiY5BInc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 to-transparent flex items-end p-4">
+<span class="font-headline font-bold text-on-surface">The 80s</span>
+</div>
+</div>
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group cursor-pointer">
+<img alt="90s hip hop vibe" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Cool 90s street style aesthetic with a vintage boombox on a city sidewalk and graffiti in the background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIiIndYknYFf9ee3z3Br4zt33x4iOQXnyfJ7_igoMK4orVk5u7P8Htx_qGLIXUFjkk46yguonele88LnGTMTL-C7qGnQTgf7YsI0VG3bl1qP9Z0TddopvebWZRDkmB8FV-B1Xfmx5FXjzl8DTL_VQxF0Q6LHA6C9R-fcMUpzvt_Uj09SFvD_5dj5I4X8eS-A-k-6A_8B3oWGER7ZIQsPrjSSLJ5orL1xdQq_CHCzX98QWrvJxPKXlsU9jTsc5R4abEK74WsxJ1ZHc"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 to-transparent flex items-end p-4">
+<span class="font-headline font-bold text-on-surface">The 90s</span>
+</div>
+</div>
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group cursor-pointer">
+<img alt="Disco lights" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Sparkling disco ball in a dark club with colorful light beams reflecting across the dance floor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9Cedo-2ZcWb7kl70qLgM8KzDl0Iw3AQlRlBImi3Dw453q9wsTuWCySaZM6CNDcJ9eZfiUTCQh-TwTClGavu3GzgdUhD3h0M-Kr5SNw2emlgDjqSSspAwJ5PE3EiH3epxgb_w8RKl6UVWFQK83otl--_scC8FVyrUP0GDqOHWuNS2xne4Mky9UNcd-lyA3o90nsop3zVVi4PH7FrDNEqO3tMLmOF77zynm-CYNSxBBJk38SHvMuR5FHUGTU5-5J0qLphtpv7VM_9s"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 to-transparent flex items-end p-4">
+<span class="font-headline font-bold text-on-surface">Disco Era</span>
+</div>
+</div>
+<div class="aspect-square rounded-lg bg-surface-container overflow-hidden relative group cursor-pointer">
+<img alt="Modern concert" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" data-alt="Modern music festival at night with massive stage lights and a large crowd with glowing phone screens" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBu9JjyeFVsEnWu-7N00ydhtj-FOme2zst1pFBNPIEc44zZT_qwGhtQM8AjJ58G_OCFZ2zy9ym6mVsVMrSXiw6n8j1j1ZTqRyxZ-RNxu_9HeAOz23swmGuJykAK7hmcw_s5dILGnA972-se-DNzMFCO4F1vHnGNuFgHrZf89eWeHUqkRQ_iXR__k-Kmt3tW9i8TlzQSoPb7CW4EGKv0Jjd86bljbKxxh-B0AhdVQ1cdq7RV4OqNBqd_AC6OLT1HsDdoOQLUHP2ItRw"/>
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 to-transparent flex items-end p-4">
+<span class="font-headline font-bold text-on-surface">Hot 100</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Shared Component: BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#0a0e1a]/80 backdrop-blur-2xl rounded-t-[2rem] shadow-[0_-8px_32px_rgba(0,0,0,0.3)]">
+<div class="flex flex-col items-center justify-center bg-[#28dfb5]/20 text-[#28dfb5] rounded-full px-5 py-1.5 active:scale-90 duration-200">
+<span class="material-symbols-outlined">videogame_asset</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Game</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dfe2f3]/50 hover:text-[#d0bcff] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Teams</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dfe2f3]/50 hover:text-[#d0bcff] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Shop</span>
+</div>
+<div class="flex flex-col items-center justify-center text-[#dfe2f3]/50 hover:text-[#d0bcff] transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">History</span>
+</div>
+</nav>
+</body></html>

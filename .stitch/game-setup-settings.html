@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Yearworm - Game Setup</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Be+Vietnam+Pro:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-dim": "#0f131f",
+              "surface-container-lowest": "#0a0e1a",
+              "secondary-container": "#571bc1",
+              "background": "#0f131f",
+              "inverse-on-surface": "#2c303d",
+              "inverse-surface": "#dfe2f3",
+              "on-background": "#dfe2f3",
+              "secondary-fixed": "#e9ddff",
+              "on-primary-fixed": "#002118",
+              "on-tertiary-fixed": "#241a00",
+              "tertiary": "#f3c01a",
+              "primary": "#28dfb5",
+              "on-secondary": "#3c0091",
+              "error": "#ffb4ab",
+              "on-primary-fixed-variant": "#00513f",
+              "on-tertiary": "#3e2e00",
+              "on-primary": "#00382b",
+              "surface-variant": "#313442",
+              "on-secondary-fixed": "#23005c",
+              "surface-container": "#1b1f2c",
+              "tertiary-fixed": "#ffdf93",
+              "tertiary-container": "#140d00",
+              "tertiary-fixed-dim": "#f3c01a",
+              "on-surface-variant": "#c7c6cc",
+              "primary-fixed": "#55fcd0",
+              "inverse-primary": "#006b55",
+              "on-error": "#690005",
+              "surface-container-low": "#171b28",
+              "secondary-fixed-dim": "#d0bcff",
+              "on-surface": "#dfe2f3",
+              "surface-tint": "#28dfb5",
+              "primary-container": "#00120c",
+              "on-error-container": "#ffdad6",
+              "surface-bright": "#353946",
+              "error-container": "#93000a",
+              "surface-container-highest": "#313442",
+              "on-secondary-container": "#c4abff",
+              "outline": "#909096",
+              "surface-container-high": "#262a37",
+              "primary-fixed-dim": "#28dfb5",
+              "secondary": "#d0bcff",
+              "outline-variant": "#46464c",
+              "on-primary-container": "#008c6f",
+              "on-tertiary-fixed-variant": "#594400",
+              "on-secondary-fixed-variant": "#5516be",
+              "surface": "#0f131f",
+              "on-tertiary-container": "#997700"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Be Vietnam Pro"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-card {
+            background: rgba(49, 52, 66, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .neon-glow-primary {
+            box-shadow: 0 0 20px rgba(40, 223, 181, 0.15);
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            background: #1b1f2c;
+            height: 8px;
+            border-radius: 9999px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            background: #28dfb5;
+            border-radius: 50%;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(40, 223, 181, 0.5);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body min-h-screen flex flex-col">
+<!-- Top Navigation Shell (Fixed but suppressed elements for focused task) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0a0e1a]/60 backdrop-blur-xl shadow-[0_12_32px_rgba(40,223,181,0.08)]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">music_note</span>
+<span class="text-2xl font-black text-[#28dfb5] tracking-tighter font-headline">Yearworm</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-[#28dfb5]/10 transition-colors active:scale-95 duration-200 text-[#dfe2f3]/70">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</header>
+<main class="flex-grow pt-24 pb-32 px-6 max-w-2xl mx-auto w-full">
+<!-- Wizard Progress Bar -->
+<div class="mb-12">
+<div class="flex justify-between mb-4">
+<span class="text-xs font-headline font-bold uppercase tracking-widest text-primary">Step 2: Rules of Play</span>
+<span class="text-xs font-headline font-bold uppercase tracking-widest text-on-surface-variant">2 of 3</span>
+</div>
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden flex">
+<div class="h-full bg-primary w-1/3 rounded-full opacity-50"></div>
+<div class="h-full bg-primary w-1/3 rounded-full"></div>
+<div class="h-full bg-surface-variant w-1/3"></div>
+</div>
+</div>
+<div class="space-y-8">
+<div class="relative overflow-hidden">
+<h1 class="text-4xl font-headline font-extrabold tracking-tight mb-2 leading-tight">Fine-tune the <span class="text-primary">Vibe</span></h1>
+<p class="text-on-surface-variant text-lg">Adjust the intensity of your music battle.</p>
+<!-- Decorative background elements -->
+<div class="absolute -right-12 -top-12 w-32 h-32 bg-primary/10 blur-3xl rounded-full"></div>
+</div>
+<!-- Settings Grid -->
+<div class="grid gap-6">
+<!-- Cards to Win Slider -->
+<div class="glass-card p-8 rounded-lg border border-outline-variant/15 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-headline font-bold text-on-surface">Cards to Win</h3>
+<p class="text-sm text-on-surface-variant">Sets the target score for victory</p>
+</div>
+<span class="text-2xl font-headline font-black text-primary bg-primary/10 px-4 py-1 rounded-full">10</span>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-surface-container rounded-lg appearance-none cursor-pointer" max="20" min="3" type="range" value="10"/>
+<div class="flex justify-between mt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+<span>3 Cards</span>
+<span>20 Cards</span>
+</div>
+</div>
+</div>
+<!-- Clip Duration Slider -->
+<div class="glass-card p-8 rounded-lg border border-outline-variant/15 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-headline font-bold text-on-surface">Clip Duration</h3>
+<p class="text-sm text-on-surface-variant">How much of the song will play</p>
+</div>
+<span class="text-2xl font-headline font-black text-secondary bg-secondary/10 px-4 py-1 rounded-full">15s</span>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-surface-container rounded-lg appearance-none cursor-pointer" max="30" min="5" style="--thumb-color: #d0bcff;" type="range" value="15"/>
+<style>
+                            input[type=range].secondary-slider::-webkit-slider-thumb { background: #d0bcff; box-shadow: 0 0 10px rgba(208, 188, 255, 0.5); }
+                        </style>
+<div class="flex justify-between mt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+<span>Short (5s)</span>
+<span>Long (30s)</span>
+</div>
+</div>
+</div>
+<!-- Turn Time Limit Slider -->
+<div class="glass-card p-8 rounded-lg border border-outline-variant/15 flex flex-col gap-6">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-xl font-headline font-bold text-on-surface">Turn Time Limit</h3>
+<p class="text-sm text-on-surface-variant">Time players have to guess</p>
+</div>
+<span class="text-2xl font-headline font-black text-tertiary bg-tertiary/10 px-4 py-1 rounded-full">45s</span>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-surface-container rounded-lg appearance-none cursor-pointer" max="120" min="0" type="range" value="45"/>
+<div class="flex justify-between mt-3 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">
+<span>None</span>
+<span>120s</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Action -->
+<footer class="fixed bottom-0 left-0 w-full p-6 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest to-transparent">
+<div class="max-w-2xl mx-auto">
+<button class="w-full bg-gradient-to-r from-primary to-on-primary-container h-16 rounded-xl flex items-center justify-center gap-3 shadow-[0_12px_32px_rgba(40,223,181,0.25)] hover:scale-[1.02] active:scale-95 transition-all group">
+<span class="text-on-primary font-headline font-extrabold text-xl tracking-tight">Next: Invite Teams</span>
+<span class="material-symbols-outlined text-on-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</footer>
+<!-- Background Decoration Image -->
+<div class="fixed inset-0 -z-10 pointer-events-none opacity-20">
+<img alt="Visualizing Music" class="w-full h-full object-cover" data-alt="abstract digital waveforms and sound waves in neon teal and purple on a dark midnight blue background soft bokeh lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBI1FQkrfzd7ZTSvb3kRaTGHDJ_wMbmt-2gYr-hH-MmgCnfc-052MCK8Fh5S6G-XxGcTj7S0a7HaaicQi9tDVWw1UyMA59cEiBBM369zqMso3VUcbBshlyeJJWxQwQBWbprpVaKCpGmgGXUM88SiSVixZrHiDivMa17aR6_x-ZmGhNiR0TfOzI6iiL-4tgVYD1uAtNljas1FsvwKyY8KZrpBkqd_yysvnhyLx5Z2Ee7yxVUbJv9Jon1DHcspbzJjTNeNoFF57MgVrw"/>
+</div>
+</body></html>

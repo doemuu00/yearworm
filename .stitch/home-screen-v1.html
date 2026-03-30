@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Yearworm - Build the Timeline</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Be+Vietnam+Pro:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error": "#ffb4ab",
+              "inverse-surface": "#dfe2f3",
+              "on-tertiary": "#3e2e00",
+              "tertiary-fixed-dim": "#f3c01a",
+              "on-tertiary-fixed-variant": "#594400",
+              "surface-container": "#1b1f2c",
+              "surface-bright": "#353946",
+              "primary-fixed-dim": "#28dfb5",
+              "on-tertiary-container": "#997700",
+              "primary-fixed": "#55fcd0",
+              "on-primary-fixed-variant": "#00513f",
+              "on-secondary-fixed-variant": "#5516be",
+              "tertiary-fixed": "#ffdf93",
+              "on-surface-variant": "#c7c6cc",
+              "primary-container": "#00120c",
+              "on-secondary-fixed": "#23005c",
+              "surface": "#0f131f",
+              "background": "#0f131f",
+              "secondary-fixed-dim": "#d0bcff",
+              "inverse-on-surface": "#2c303d",
+              "surface-container-lowest": "#0a0e1a",
+              "error-container": "#93000a",
+              "surface-dim": "#0f131f",
+              "on-secondary": "#3c0091",
+              "tertiary-container": "#140d00",
+              "on-error-container": "#ffdad6",
+              "secondary-fixed": "#e9ddff",
+              "surface-container-highest": "#313442",
+              "surface-variant": "#313442",
+              "on-secondary-container": "#c4abff",
+              "on-tertiary-fixed": "#241a00",
+              "primary": "#28dfb5",
+              "outline-variant": "#46464c",
+              "surface-container-high": "#262a37",
+              "on-surface": "#dfe2f3",
+              "inverse-primary": "#006b55",
+              "surface-container-low": "#171b28",
+              "on-background": "#dfe2f3",
+              "secondary": "#d0bcff",
+              "on-error": "#690005",
+              "tertiary": "#f3c01a",
+              "outline": "#909096",
+              "on-primary": "#00382b",
+              "surface-tint": "#28dfb5",
+              "secondary-container": "#571bc1",
+              "on-primary-container": "#008c6f",
+              "on-primary-fixed": "#002118"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Be Vietnam Pro"],
+              "label": ["Be Vietnam Pro"]
+            },
+            borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .tactile-bounce:active {
+        transform: scale(0.95);
+      }
+      .waveform-bg {
+        background: radial-gradient(circle at 50% 50%, #171b28 0%, #0a0e1a 100%);
+      }
+      .glass-panel {
+        background: rgba(49, 52, 66, 0.6);
+        backdrop-filter: blur(20px);
+      }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/30 overflow-hidden">
+<!-- Top Navigation Shell -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0a0e1a]/60 backdrop-blur-xl">
+<div class="flex items-center gap-2">
+<span class="text-2xl font-black text-[#28dfb5] drop-shadow-[0_0_8px_rgba(40,223,181,0.4)] font-headline tracking-tight">
+                Year<span class="inline-flex items-center"><span class="material-symbols-outlined text-primary scale-110" style="font-variation-settings: 'FILL' 1;">music_note</span></span>worm
+            </span>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-[#dfe2f3] hover:bg-[#28dfb5]/10 hover:text-[#28dfb5] transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="emoji_events">emoji_events</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-[#dfe2f3] hover:bg-[#28dfb5]/10 hover:text-[#28dfb5] transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-[#dfe2f3] hover:bg-[#28dfb5]/10 hover:text-[#28dfb5] transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="relative w-full h-screen flex items-center justify-center waveform-bg px-6">
+<!-- Background Atmosphere -->
+<div class="absolute inset-0 pointer-events-none overflow-hidden">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[120%] opacity-20">
+<div class="w-full h-full flex items-center justify-around gap-1 px-20">
+<!-- Faux Waveform Elements -->
+<div class="w-2 h-24 bg-primary rounded-full blur-[1px]"></div>
+<div class="w-2 h-40 bg-secondary rounded-full blur-[1px]"></div>
+<div class="w-2 h-16 bg-primary rounded-full blur-[1px]"></div>
+<div class="w-2 h-56 bg-tertiary rounded-full blur-[1px]"></div>
+<div class="w-2 h-32 bg-secondary rounded-full blur-[1px]"></div>
+<div class="w-2 h-48 bg-primary rounded-full blur-[1px]"></div>
+<div class="w-2 h-20 bg-secondary rounded-full blur-[1px]"></div>
+<div class="w-2 h-36 bg-tertiary rounded-full blur-[1px]"></div>
+<div class="w-2 h-12 bg-primary rounded-full blur-[1px]"></div>
+</div>
+</div>
+<!-- Floating Note Icons -->
+<span class="material-symbols-outlined absolute top-24 left-[15%] text-primary/20 scale-[2]" data-icon="music_note">music_note</span>
+<span class="material-symbols-outlined absolute bottom-24 right-[15%] text-secondary/20 scale-[3]" data-icon="audiotrack">audiotrack</span>
+<span class="material-symbols-outlined absolute top-40 right-[10%] text-tertiary/10 scale-[1.5]" data-icon="queue_music">queue_music</span>
+</div>
+<!-- Home Content -->
+<div class="relative z-10 w-full max-w-4xl flex flex-col md:flex-row items-center justify-between gap-12">
+<!-- Hero Text Section -->
+<div class="flex flex-col items-start space-y-2 md:w-1/2 text-left">
+<h1 class="font-headline text-5xl md:text-6xl font-extrabold tracking-tighter text-on-surface leading-none">
+                    Year<span class="text-primary">worm</span>
+</h1>
+<p class="font-body text-xl text-on-surface-variant font-medium max-w-xs">
+                    Guess the song, build the timeline.
+                </p>
+<div class="pt-4 flex items-center gap-3">
+<div class="flex -space-x-3">
+<img class="w-8 h-8 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="close-up portrait of a smiling young man in neon lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoz7kAgj3getIl8o-Inh_va1TYdy25Btj4hCdSXah6qB7-qddDinfH-pwqlRuL3tPgB0isy9ywR-CH4ju134DfeZrtVCd7h9g5RTfdm2NdZtSbUK8R4aTEtSX2VIcXtbFhos--JJ10WJgu0trP4aW6bomz5SZxfzd1l2CNxD8RUGtZv99gzzyo6kheiU6H3BFPEdkGC_JK340YT2ZvRw1MTikVKe5sFFoFbkLWHMyZwSJCu_97o3czNhhs-VU38OAomuSHdqjjovk"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="portrait of a woman with vibrant lighting reflecting on her face" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHRsGqM5HXhIEH6ljWieG2n9GL6gDQuD2tKeAM4dkjsyEZ0zutC6ekNN5MLvtS2iQhZrIQNCtNdiEyV2PwtygwTH5qOEw54uqA5ZdHBIELkmpWoiBONaYTbSljJNJS0C68_-HdNhXTTHjMjgxM5IUFKporYnqyAHcO1yz9kef7Y6J3VMJ-rz_2ABipP0Yl4fReUibQ-Sp2c5dsrm2Jp6GeNd4W1cBgJrv3N6zaqX3996dxtFsonr2ICU7oqR96LvlrNJSejz5q8B8"/>
+<img class="w-8 h-8 rounded-full border-2 border-surface-container-lowest object-cover" data-alt="modern headshot of a person with creative studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw38YtWAnkcy0CjsWHUaYlRezbDZGwluuOwhkdzYMzSi-gH0pQz34hmlV9HffINgTrN80KBPSzA8H3xqksVHNk6rpaOxWgUHFvhWfSFOmQUnX7OSA42HUSwoVsnFr-UpQ97ok2lhdSe3XSlwCKtNMn7ZHnAH-rXfhFPnMmx-hN4QoxMbAZ4r3FFujNmGPsjSk87piRmBdX8ZESwrwgR5ubd55FOhl1T-FdXp80qdj2U9EZiCTtwCIX_13G59JCEf5nVur4kCNc4FA"/>
+</div>
+<p class="text-sm font-semibold text-on-tertiary-fixed-variant">+2,401 playing now</p>
+</div>
+</div>
+<!-- Action Buttons Stack -->
+<div class="flex flex-col gap-4 md:w-[400px] w-full">
+<!-- Create Game (Spotify Primary) -->
+<button class="group relative w-full h-16 glass-panel rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(40,223,181,0.3)] active:scale-95 flex items-center justify-between px-6 border-l-4 border-primary">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+</div>
+<div class="text-left">
+<span class="block font-headline text-lg font-bold text-on-surface">Create Game</span>
+<span class="block text-xs font-bold text-primary/80 uppercase tracking-widest">Requires Spotify</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Quick Play (Secondary) -->
+<button class="group relative w-full h-16 glass-panel rounded-xl overflow-hidden transition-all duration-300 hover:shadow-[0_0_20px_rgba(208,188,255,0.2)] active:scale-95 flex items-center justify-between px-6 border-l-4 border-secondary">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<div class="text-left">
+<span class="block font-headline text-lg font-bold text-on-surface">Quick Play</span>
+<span class="block text-xs font-bold text-secondary/80 uppercase tracking-widest">Demo Songs • Solo</span>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-secondary transition-colors" data-icon="chevron_right">chevron_right</span>
+</button>
+<!-- Join Game (Disabled/Soon) -->
+<div class="relative w-full h-16 glass-panel rounded-xl flex items-center justify-between px-6 border-l-4 border-outline opacity-60">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-outline">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+</div>
+<div class="text-left">
+<span class="block font-headline text-lg font-bold text-on-surface">Join Game</span>
+<span class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">Multiplayer</span>
+</div>
+</div>
+<span class="bg-surface-container-highest text-[10px] font-bold px-2 py-1 rounded-full text-on-surface-variant uppercase tracking-tighter">Coming Soon</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Filter Logic: Visible for top-level destination) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-4 pt-2 bg-[#0a0e1a]/80 backdrop-blur-2xl rounded-t-[2rem] shadow-[0_-12px_32px_rgba(40,223,181,0.08)]">
+<!-- Active Tab: Game (Matches home intent) -->
+<a class="flex flex-col items-center justify-center bg-[#28dfb5]/20 text-[#28dfb5] rounded-full px-6 py-2 shadow-[0_0_15px_rgba(40,223,181,0.3)] transition-all duration-150 tactile-bounce" href="#">
+<span class="material-symbols-outlined" data-icon="videogame_asset" style="font-variation-settings: 'FILL' 1;">videogame_asset</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Game</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Teams</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="stars">stars</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">Shop</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dfe2f3]/60 px-6 py-2 hover:text-[#28dfb5] transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Plus_Jakarta_Sans'] text-[10px] font-semibold uppercase tracking-widest">History</span>
+</a>
+</nav>
+</body></html>

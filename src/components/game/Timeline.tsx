@@ -276,9 +276,9 @@ function PlacedCard({ song, team, index, compact, topPercent, hidden = false, mi
         zIndex: 20 + index,
       }}
     >
-      <div className={`glass-panel ${compact ? 'p-3' : 'p-5'} rounded-xl shadow-lg relative overflow-hidden border ${borderColor}`}>
-        <div className={`flex justify-between items-start mb-2 ${mirror ? 'flex-row-reverse' : ''}`}>
-          <span className={`px-3 py-1.5 ${badgeBg} ${badgeText} font-headline font-black text-sm rounded-lg ${badgeShadow} tracking-tight`}>
+      <div className={`glass-panel ${compact ? 'p-2' : 'p-3'} rounded-xl shadow-lg relative overflow-hidden border ${borderColor}`}>
+        <div className={`flex justify-between items-start mb-1 ${mirror ? 'flex-row-reverse' : ''}`}>
+          <span className={`px-2 py-1 ${badgeBg} ${badgeText} font-headline font-black text-xs rounded-lg ${badgeShadow} tracking-tight`}>
             {hidden ? '?' : song.releaseYear}
           </span>
           {!hidden && song.placedCorrectly !== undefined && (
@@ -290,11 +290,11 @@ function PlacedCard({ song, team, index, compact, topPercent, hidden = false, mi
             </span>
           )}
         </div>
-        <h3 className={`font-headline font-bold text-on-surface leading-tight ${compact ? 'text-sm' : 'text-lg'} mb-0.5 truncate ${mirror ? 'text-right' : ''}`}>
+        <h3 className={`font-headline font-bold text-on-surface leading-tight ${compact ? 'text-xs' : 'text-sm'} mb-0.5 truncate ${mirror ? 'text-right' : ''}`}>
           {song.title}
         </h3>
         {!compact && (
-          <p className={`text-sm text-on-surface-variant font-medium truncate ${mirror ? 'text-right' : ''}`}>
+          <p className={`text-xs text-on-surface-variant font-medium truncate ${mirror ? 'text-right' : ''}`}>
             {song.artist}
           </p>
         )}

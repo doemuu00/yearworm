@@ -60,12 +60,12 @@ export default function ActionBar({
     cardTeam === 'A' ? DESIGN_TOKENS.colors.teamA : DESIGN_TOKENS.colors.teamB;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-30">
+    <div className="shrink-0">
       {/* Floating draggable card above the bar */}
       <AnimatePresence>
         {showDraggable && cardSong && (
           <motion.div
-            className="flex flex-col items-center gap-2 pb-3"
+            className="flex flex-col items-center gap-2 pb-2"
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
@@ -78,7 +78,7 @@ export default function ActionBar({
 
       {/* Bar */}
       <div
-        className="flex items-center justify-center gap-4 px-4 py-3"
+        className="flex items-center justify-center gap-3 px-3 py-2"
         style={{
           background: 'rgba(10, 14, 26, 0.9)',
           backdropFilter: 'blur(16px)',

@@ -166,14 +166,16 @@ export default function AudioPlayer({
   }, [transitionToReady]);
 
   // SVG circle values
-  const radius = 54;
+  const size = 100;
+  const half = size / 2;
+  const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
 
   const timeRemaining = Math.max(0, clipDuration - elapsed);
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-3">
       <AnimatePresence mode="wait">
         {state === 'ready' ? (
           /* ── Ready state: hidden -- GameBoard shows the draggable card */
@@ -184,39 +186,39 @@ export default function AudioPlayer({
             key="circle"
             layoutId="player-shape"
             className="relative group"
-            style={{ width: 160, height: 160 }}
-            initial={{ borderRadius: 80 }}
-            animate={{ borderRadius: 80 }}
+            style={{ width: size, height: size }}
+            initial={{ borderRadius: half }}
+            animate={{ borderRadius: half }}
           >
             {/* SVG progress ring */}
-            <svg className="w-40 h-40 transform -rotate-90 absolute inset-0">
+            <svg className="transform -rotate-90 absolute inset-0" width={size} height={size}>
               {/* Track ring */}
               <circle
                 className="text-surface-container-highest"
-                cx="80"
-                cy="80"
+                cx={half}
+                cy={half}
                 r={radius}
                 fill="transparent"
                 stroke="currentColor"
-                strokeWidth="4"
+                strokeWidth="3"
               />
               {/* Progress arc */}
               {(state === 'playing' || state === 'paused') && (
                 <motion.circle
                   className={isA ? 'text-primary' : 'text-secondary'}
-                  cx="80"
-                  cy="80"
+                  cx={half}
+                  cy={half}
                   r={radius}
                   fill="transparent"
                   stroke="currentColor"
-                  strokeWidth="4"
+                  strokeWidth="3"
                   strokeLinecap="round"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   style={{
                     filter: isA
-                      ? 'drop-shadow(0 0 12px rgba(40,223,181,0.5))'
-                      : 'drop-shadow(0 0 12px rgba(208,188,255,0.5))',
+                      ? 'drop-shadow(0 0 8px rgba(40,223,181,0.5))'
+                      : 'drop-shadow(0 0 8px rgba(208,188,255,0.5))',
                   }}
                 />
               )}
@@ -224,19 +226,19 @@ export default function AudioPlayer({
 
             {/* Center play button */}
             <motion.button
-              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-gradient-to-br ${isA ? 'from-primary to-on-primary-container text-on-primary shadow-[0_0_40px_rgba(40,223,181,0.4)]' : 'from-secondary to-on-secondary-container text-on-secondary shadow-[0_0_40px_rgba(208,188,255,0.4)]'} flex flex-col items-center justify-center active:scale-95 transition-all duration-200`}
+              className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-gradient-to-br ${isA ? 'from-primary to-on-primary-container text-on-primary shadow-[0_0_24px_rgba(40,223,181,0.4)]' : 'from-secondary to-on-secondary-container text-on-secondary shadow-[0_0_24px_rgba(208,188,255,0.4)]'} flex flex-col items-center justify-center active:scale-95 transition-all duration-200`}
               onClick={handleTap}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
               <span
-                className="material-symbols-outlined text-5xl"
+                className="material-symbols-outlined text-3xl"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 {state === 'playing' ? 'pause' : 'play_arrow'}
               </span>
               {(state === 'playing' || state === 'paused') && (
-                <span className={`text-[11px] font-mono font-bold -mt-1 ${isA ? 'text-on-primary/80' : 'text-on-secondary/80'}`}>
+                <span className={`text-[9px] font-mono font-bold -mt-0.5 ${isA ? 'text-on-primary/80' : 'text-on-secondary/80'}`}>
                   {Math.ceil(timeRemaining)}s
                 </span>
               )}
@@ -271,47 +273,45 @@ export default function AudioPlayer({
       <AnimatePresence>
         {(state === 'playing' || state === 'paused') && (
           <motion.div
-            className="flex items-center gap-4"
+            className="flex items-center gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             {/* Play / Pause */}
             <motion.button
-              className="w-14 h-14 rounded-full flex items-center justify-center text-on-surface hover:bg-white/10 transition-all active:scale-90 border border-white/5"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:bg-white/10 transition-all active:scale-90 border border-white/5"
               style={{
                 background: 'rgba(49, 52, 66, 0.4)',
                 backdropFilter: 'blur(20px)',
               }}
               onClick={handleTap}
-              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title={state === 'playing' ? 'Pause' : 'Resume'}
             >
-              <span className="material-symbols-outlined text-2xl">
+              <span className="material-symbols-outlined text-xl">
                 {state === 'playing' ? 'pause' : 'play_arrow'}
               </span>
             </motion.button>
 
             {/* Stop / Place */}
             <motion.button
-              className="w-14 h-14 rounded-full flex items-center justify-center text-on-surface hover:text-error transition-all active:scale-90 border border-white/5"
+              className="w-10 h-10 rounded-full flex items-center justify-center text-on-surface hover:text-error transition-all active:scale-90 border border-white/5"
               style={{
                 background: 'rgba(49, 52, 66, 0.4)',
                 backdropFilter: 'blur(20px)',
               }}
               onClick={handlePlaceNow}
-              whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               title="Stop & place song"
             >
-              <span className="material-symbols-outlined text-2xl">stop</span>
+              <span className="material-symbols-outlined text-xl">stop</span>
             </motion.button>
 
             {/* Skip */}
             {onSkip && (
               <motion.button
-                className="w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-90 border border-white/5"
+                className="w-10 h-10 rounded-full flex items-center justify-center transition-all active:scale-90 border border-white/5"
                 style={{
                   background: 'rgba(49, 52, 66, 0.4)',
                   backdropFilter: 'blur(20px)',
@@ -320,11 +320,10 @@ export default function AudioPlayer({
                   cursor: canSkip ? 'pointer' : 'not-allowed',
                 }}
                 onClick={canSkip ? onSkip : undefined}
-                whileHover={canSkip ? { scale: 1.1 } : undefined}
                 whileTap={canSkip ? { scale: 0.9 } : undefined}
                 title={canSkip ? 'Skip (1 token)' : 'Not enough tokens'}
               >
-                <span className="material-symbols-outlined text-2xl">skip_next</span>
+                <span className="material-symbols-outlined text-xl">skip_next</span>
               </motion.button>
             )}
 
