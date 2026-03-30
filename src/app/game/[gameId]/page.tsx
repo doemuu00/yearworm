@@ -20,11 +20,10 @@ import { useTimer } from '@/hooks/useTimer';
 import { useAudio } from '@/hooks/useAudio';
 
 import AudioPlayer from '@/components/game/AudioPlayer';
-import GameBoard from '@/components/game/GameBoard';
 import { DraggableSongCard, DragOverlayCard } from '@/components/game/GameBoard';
 import Timeline from '@/components/game/Timeline';
-import TurnIndicator from '@/components/game/TurnIndicator';
-import { TeamPanel } from '@/components/game/ScoreBoard';
+import ScoreBar from '@/components/game/ScoreBar';
+import ActionBar from '@/components/game/ActionBar';
 import ChallengeModal from '@/components/game/ChallengeModal';
 import PlacementResult from '@/components/game/PlacementResult';
 import GuessModal from '@/components/game/GuessModal';
@@ -78,9 +77,7 @@ export default function GamePage() {
   const [revealed, setRevealed] = useState(false);
   const [songReady, setSongReady] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
-  // Track the team whose turn we're showing (to support pass-device correctly)
   const activeTeamRef = useRef<Team>(currentTeam);
-  // Placement result overlay state
   const [placementResult, setPlacementResult] = useState<{
     song: PlacedSong;
     placingTeam: Team;
@@ -305,25 +302,19 @@ export default function GamePage() {
     currentTeamTokens >= (settings.tokensToSkip ?? 1);
   const canSkipReady = canSkip || (songReady && currentTeamTokens >= (settings.tokensToSkip ?? 1));
 
-  const showDraggableCard = songReady && currentSong;
   const isChallenging = phase === 'challenge-placing';
 
   // Hide the last-placed card's year and correctness until all overlays are dismissed
   const unrevealed = phase !== 'playing' && phase !== 'pass-device' && phase !== 'game-over';
   const hiddenSongId = unrevealed && lastPlacedSong ? lastPlacedSong.spotifyId : undefined;
 
-  // Always Team A left, Team B right
-  // During challenge-placing, the placing team's timeline is active for the challenger
-  const teamATimelineData = currentTeam === 'A' ? currentTeamTimeline : teamATimeline;
-  const teamBTimelineData = currentTeam === 'B' ? currentTeamTimeline : teamBTimeline;
-
-  // During challenge: the PLACING team's timeline is active (challenger drops there)
-  const teamAIsActive = isChallenging
-    ? lastPlacedTeam === 'A'
-    : currentTeam === 'A';
-  const teamBIsActive = isChallenging
-    ? lastPlacedTeam === 'B'
-    : currentTeam === 'B';
+  // Single timeline: show active team's data, or placing team's during challenge
+  const displayedTeam: Team = isChallenging
+    ? (lastPlacedTeam ?? currentTeam)
+    : currentTeam;
+  const displayedTimeline = displayedTeam === 'A'
+    ? (currentTeam === 'A' ? currentTeamTimeline : teamATimeline)
+    : (currentTeam === 'B' ? currentTeamTimeline : teamBTimeline);
 
   /* ── Guard: no song pool yet (redirecting) ─────────── */
   if (songPool.length === 0) {
@@ -335,139 +326,89 @@ export default function GamePage() {
       {/* ── Top App Bar ──────────────────────────────────── */}
       <TopAppBar />
 
-      {/* ── Main 3-column grid layout (wrapped in DndContext) ── */}
+      {/* ── Main layout (wrapped in DndContext) ───────────── */}
       <DndContext
         sensors={sensors}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <main className="flex-1 pt-24 pb-28 px-4 md:px-8 grid grid-cols-12 gap-6 max-w-7xl mx-auto w-full">
-          {/* LEFT COLUMN: Team A */}
-          <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
-            <TeamPanel
-              label={teamName('A')}
-              team="A"
-              score={teamAScore}
-              tokens={teamATokens}
-              cardsToWin={cardsToWin}
-              isActive={teamAIsActive}
-              align="left"
-            />
-            <div className="flex-1 min-h-0">
-              <Timeline
-                timeline={teamATimelineData}
-                team="A"
-                isActiveTeam={teamAIsActive}
-                onPlaceSong={teamAIsActive ? handlePlaceSong : () => {}}
-                isDragActive={teamAIsActive ? isDragActive : false}
-                compact={!teamAIsActive}
-                ghostSongId={isChallenging && lastPlacedTeam === 'A' ? lastPlacedSong?.spotifyId : undefined}
-                hiddenSongId={lastPlacedTeam === 'A' ? hiddenSongId : undefined}
-              />
-            </div>
-          </section>
+        <main className="flex-1 flex flex-col pt-16">
+          {/* Score bar */}
+          <ScoreBar
+            teamALabel={teamName('A')}
+            teamBLabel={teamName('B')}
+            teamAScore={teamAScore}
+            teamBScore={teamBScore}
+            teamATokens={teamATokens}
+            teamBTokens={teamBTokens}
+            cardsToWin={cardsToWin}
+            activeTeam={currentTeam}
+            displayedTeam={displayedTeam}
+            timeRemaining={
+              phase === 'playing' && settings.turnTimeLimitSeconds > 0
+                ? turnTimer.timeRemaining
+                : undefined
+            }
+            isTimerRunning={turnTimer.isRunning}
+            isChallenging={isChallenging}
+            challengingTeamLabel={teamName(challengingTeam)}
+            placingTeamLabel={teamName(lastPlacedTeam)}
+          />
 
-          {/* CENTER COLUMN: Action Zone */}
-          <section className="col-span-12 md:col-span-6 flex flex-col items-center gap-10 relative">
-            {isChallenging ? (
-              /* Challenge-placing: show challenger's card */
-              <>
-                <TurnIndicator
-                  currentTeam={challengingTeam}
-                  teamLabel={teamName(challengingTeam)}
-                  timeRemaining={undefined}
-                  isTimerRunning={false}
+          {/* Single timeline — full width */}
+          <div className="flex-1 min-h-0 px-4 md:px-12 lg:px-24 pb-36">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={displayedTeam}
+                className="h-full"
+                initial={{ opacity: 0, x: displayedTeam === 'A' ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: displayedTeam === 'A' ? 20 : -20 }}
+                transition={{ duration: 0.25 }}
+              >
+                <Timeline
+                  timeline={displayedTimeline}
+                  team={displayedTeam}
+                  isActiveTeam={true}
+                  onPlaceSong={isChallenging ? handleChallengerPlace : handlePlaceSong}
+                  isDragActive={isDragActive}
+                  compact={false}
+                  mirrorLayout={false}
+                  ghostSongId={isChallenging && lastPlacedSong ? lastPlacedSong.spotifyId : undefined}
+                  hiddenSongId={lastPlacedTeam === displayedTeam ? hiddenSongId : undefined}
                 />
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant">
-                    Place on {teamName(lastPlacedTeam)}&apos;s timeline
-                  </p>
-                  {lastPlacedSong && (
-                    <DraggableSongCard song={lastPlacedSong} team={challengingTeam} />
-                  )}
-                </div>
-              </>
-            ) : (
-              /* Normal playing: show turn indicator + audio/card */
-              <>
-                <TurnIndicator
-                  currentTeam={currentTeam}
-                  teamLabel={teamName(currentTeam)}
-                  timeRemaining={
-                    phase === 'playing' && settings.turnTimeLimitSeconds > 0
-                      ? turnTimer.timeRemaining
-                      : undefined
-                  }
-                  isTimerRunning={turnTimer.isRunning}
-                />
-                <div className="flex flex-col items-center gap-10">
-                  {showDraggableCard ? (
-                    <motion.div
-                      className="flex flex-col items-center gap-4"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                    >
-                      <DraggableSongCard song={currentSong} team={currentTeam} />
-                      {canSkipReady && (
-                        <button
-                          onClick={handleSkip}
-                          className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 border ${
-                            currentTeam === 'A'
-                              ? 'border-primary/20 text-primary/70 hover:bg-primary/10'
-                              : 'border-secondary/20 text-secondary/70 hover:bg-secondary/10'
-                          }`}
-                          style={{ background: 'rgba(49, 52, 66, 0.4)' }}
-                        >
-                          <span className="material-symbols-outlined text-sm">skip_next</span>
-                          Skip (1 token)
-                        </button>
-                      )}
-                    </motion.div>
-                  ) : (
-                    <AudioPlayer
-                      previewUrl={currentSong?.previewUrl ?? null}
-                      albumArtUrl={currentSong?.albumArtUrl ?? ''}
-                      title={currentSong?.title ?? 'Unknown'}
-                      artist={currentSong?.artist ?? 'Unknown'}
-                      revealed={revealed}
-                      clipDuration={settings.clipDurationSeconds}
-                      onSongReady={handleSongReady}
-                      onSkip={handleSkip}
-                      canSkip={canSkip}
-                      team={currentTeam}
-                    />
-                  )}
-                </div>
-              </>
-            )}
-          </section>
+              </motion.div>
+            </AnimatePresence>
+          </div>
 
-          {/* RIGHT COLUMN: Team B */}
-          <section className="col-span-12 md:col-span-3 flex flex-col gap-2 min-h-0">
-            <TeamPanel
-              label={teamName('B')}
-              team="B"
-              score={teamBScore}
-              tokens={teamBTokens}
-              cardsToWin={cardsToWin}
-              isActive={teamBIsActive}
-              align="right"
-            />
-            <div className="flex-1 min-h-0">
-              <Timeline
-                timeline={teamBTimelineData}
-                team="B"
-                isActiveTeam={teamBIsActive}
-                onPlaceSong={teamBIsActive ? handlePlaceSong : () => {}}
-                isDragActive={teamBIsActive ? isDragActive : false}
-                compact={!teamBIsActive}
-                ghostSongId={isChallenging && lastPlacedTeam === 'B' ? lastPlacedSong?.spotifyId : undefined}
-                hiddenSongId={lastPlacedTeam === 'B' ? hiddenSongId : undefined}
+          {/* Action bar at bottom */}
+          <ActionBar
+            phase={phase}
+            currentSong={currentSong}
+            songReady={songReady}
+            currentTeam={currentTeam}
+            isChallenging={isChallenging}
+            lastPlacedSong={lastPlacedSong}
+            challengingTeam={challengingTeam}
+            placingTeamLabel={teamName(lastPlacedTeam)}
+            onSkip={handleSkip}
+            canSkip={canSkipReady}
+            audioPlayer={
+              <AudioPlayer
+                previewUrl={currentSong?.previewUrl ?? null}
+                albumArtUrl={currentSong?.albumArtUrl ?? ''}
+                title={currentSong?.title ?? 'Unknown'}
+                artist={currentSong?.artist ?? 'Unknown'}
+                revealed={revealed}
+                clipDuration={settings.clipDurationSeconds}
+                onSongReady={handleSongReady}
+                onSkip={handleSkip}
+                canSkip={canSkip}
+                team={currentTeam}
               />
-            </div>
-          </section>
+            }
+          />
         </main>
 
         {/* Floating drag overlay that follows the cursor */}

@@ -33,6 +33,8 @@ export interface TimelineProps {
   onPlaceSong: (position: number) => void;
   isDragActive: boolean;
   compact?: boolean;
+  /** Mirror the layout (axis on right, cards on left). Default: false (axis left, cards right). */
+  mirrorLayout?: boolean;
   /** During challenge-placing, render this song as a ghost (transparent, no drop zone impact) */
   ghostSongId?: string;
   /** Hide year and correctness icon for this song (prevents spoilers before reveal) */
@@ -99,12 +101,12 @@ interface DropZoneProps {
   heightPercent: number;
   compact: boolean;
   isActiveTeam: boolean;
+  mirror: boolean;
 }
 
-function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam }: DropZoneProps) {
+function DropZone({ id, team, topPercent, heightPercent, compact, isActiveTeam, mirror }: DropZoneProps) {
   const { isOver, setNodeRef } = useDroppable({ id });
   const isPrimary = team === 'A';
-  const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/20' : 'border-secondary/20';
   const borderColorOver = isPrimary ? 'border-primary' : 'border-secondary';
   const textColor = isPrimary ? 'text-primary/40' : 'text-secondary/40';
@@ -150,9 +152,10 @@ interface ConnectorProps {
   compact: boolean;
   /** Staggered offset (px) from axis for the vertical segment, prevents overlap */
   stubLength: number;
+  mirror: boolean;
 }
 
-function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLength }: ConnectorProps) {
+function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLength, mirror }: ConnectorProps) {
   const isPrimary = team === 'A';
   const lineColor = isPrimary
     ? 'rgba(40, 223, 181, 0.3)'
@@ -180,9 +183,9 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLeng
           width: 6,
           height: 6,
           transform: 'translateY(-50%)',
-          ...(isPrimary
-            ? { left: axisPos - 2 }
-            : { right: axisPos - 2 }),
+          ...(mirror
+            ? { right: axisPos - 2 }
+            : { left: axisPos - 2 }),
           background: dotColor,
           boxShadow: `0 0 6px ${dotColor}`,
           zIndex: 16,
@@ -196,9 +199,9 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLeng
           top: `${idealPercent}%`,
           height: w,
           transform: 'translateY(-50%)',
-          ...(isPrimary
-            ? { left: axisPos, width: stubLength }
-            : { right: axisPos, width: stubLength }),
+          ...(mirror
+            ? { right: axisPos, width: stubLength }
+            : { left: axisPos, width: stubLength }),
           background: lineColor,
           zIndex: 15,
         }}
@@ -211,9 +214,9 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLeng
           top: `${Math.min(idealPercent, adjustedPercent)}%`,
           height: `${Math.abs(adjustedPercent - idealPercent)}%`,
           width: w,
-          ...(isPrimary
-            ? { left: stubEnd }
-            : { right: stubEnd }),
+          ...(mirror
+            ? { right: stubEnd }
+            : { left: stubEnd }),
           background: lineColor,
           zIndex: 15,
         }}
@@ -226,9 +229,9 @@ function ElbowConnector({ idealPercent, adjustedPercent, team, compact, stubLeng
           top: `${adjustedPercent}%`,
           height: w,
           transform: 'translateY(-50%)',
-          ...(isPrimary
-            ? { left: stubEnd, width: cardEdge - stubEnd }
-            : { right: stubEnd, width: cardEdge - stubEnd }),
+          ...(mirror
+            ? { right: stubEnd, width: cardEdge - stubEnd }
+            : { left: stubEnd, width: cardEdge - stubEnd }),
           background: lineColor,
           zIndex: 15,
         }}
@@ -246,11 +249,11 @@ interface PlacedCardProps {
   compact: boolean;
   topPercent: number;
   hidden?: boolean;
+  mirror: boolean;
 }
 
-function PlacedCard({ song, team, index, compact, topPercent, hidden = false }: PlacedCardProps) {
+function PlacedCard({ song, team, index, compact, topPercent, hidden = false, mirror }: PlacedCardProps) {
   const isPrimary = team === 'A';
-  const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
   const badgeBg = isPrimary ? 'bg-primary' : 'bg-secondary';
   const badgeText = isPrimary ? 'text-on-primary' : 'text-on-secondary-fixed';
@@ -307,11 +310,11 @@ interface GhostCardProps {
   team: Team;
   compact: boolean;
   topPercent: number;
+  mirror: boolean;
 }
 
-function GhostCard({ song, team, compact, topPercent }: GhostCardProps) {
+function GhostCard({ song, team, compact, topPercent, mirror }: GhostCardProps) {
   const isPrimary = team === 'A';
-  const mirror = !isPrimary;
   const borderColor = isPrimary ? 'border-primary/10' : 'border-secondary/10';
   const badgeBg = isPrimary ? 'bg-primary' : 'bg-secondary';
   const badgeText = isPrimary ? 'text-on-primary' : 'text-on-secondary-fixed';
@@ -361,11 +364,13 @@ export default function Timeline({
   isActiveTeam,
   isDragActive,
   compact = false,
+  mirrorLayout = false,
   ghostSongId,
   hiddenSongId,
 }: TimelineProps) {
   const sorted = [...timeline].sort((a, b) => a.releaseYear - b.releaseYear);
   const isPrimary = team === 'A';
+  const mirror = mirrorLayout;
   const showDropZones = isDragActive && isActiveTeam;
 
   // Separate ghost and hidden cards from solid cards.
@@ -519,9 +524,9 @@ export default function Timeline({
           <div
             style={{
               position: 'absolute',
-              ...(isPrimary
-                ? { left: axisPos }
-                : { right: axisPos }),
+              ...(mirror
+                ? { right: axisPos }
+                : { left: axisPos }),
               top: compact ? 8 : 12,
               bottom: compact ? 8 : 12,
               width: 2,
@@ -536,15 +541,15 @@ export default function Timeline({
             return (
               <div
                 key={decade}
-                className={`absolute flex items-center ${isPrimary ? '' : 'flex-row-reverse'}`}
+                className={`absolute flex items-center ${mirror ? 'flex-row-reverse' : ''}`}
                 style={{
                   top: `${pct}%`,
-                  ...(isPrimary ? { left: 0 } : { right: 0 }),
+                  ...(mirror ? { right: 0 } : { left: 0 }),
                   transform: 'translateY(-50%)',
                 }}
               >
                 <span
-                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold ${isPrimary ? 'text-right pr-1' : 'text-left pl-1'} select-none`}
+                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold ${mirror ? 'text-left pl-1' : 'text-right pr-1'} select-none`}
                   style={{ color: decadeColor }}
                 >
                   {decade}
@@ -570,6 +575,7 @@ export default function Timeline({
               heightPercent={dz.heightPct}
               compact={compact}
               isActiveTeam={isActiveTeam}
+              mirror={mirror}
             />
           ))}
 
@@ -589,6 +595,7 @@ export default function Timeline({
                 team={team}
                 compact={compact}
                 stubLength={stubBase + connIdx * stubStep}
+                mirror={mirror}
               />
             ));
           })()}
@@ -601,6 +608,7 @@ export default function Timeline({
               team={team}
               compact={compact}
               topPercent={ghostTopPercent}
+              mirror={mirror}
             />
           )}
 
@@ -614,6 +622,7 @@ export default function Timeline({
               compact={compact}
               topPercent={hiddenTopPercent}
               hidden
+              mirror={mirror}
             />
           )}
 
@@ -628,6 +637,7 @@ export default function Timeline({
                 index={i}
                 compact={compact}
                 topPercent={pos?.adjusted ?? yearToPercent(song.releaseYear)}
+                mirror={mirror}
               />
             );
           })}
@@ -643,7 +653,7 @@ export default function Timeline({
         </div>
       </div>
 
-      {/* Lock overlay for opponent */}
+      {/* Lock overlay for opponent (only used when timeline is shown inactive) */}
       {!isActiveTeam && (
         <div className="absolute inset-0 flex items-center justify-center rounded-xl pointer-events-none">
           <span className={`${isPrimary ? 'text-primary/20' : 'text-secondary/20'} text-xs uppercase tracking-widest font-semibold bg-black/30 px-3 py-1 rounded-full`}>
