@@ -357,11 +357,11 @@ export default function GamePage() {
           />
 
           {/* Single timeline — full width */}
-          <div className="flex-1 min-h-0 px-4 md:px-12 lg:px-24 pb-36">
+          <div className="relative flex-1 min-h-[60vh] pb-36">
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayedTeam}
-                className="h-full"
+                className="absolute inset-0 px-4 md:px-12 lg:px-24"
                 initial={{ opacity: 0, x: displayedTeam === 'A' ? -20 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: displayedTeam === 'A' ? 20 : -20 }}

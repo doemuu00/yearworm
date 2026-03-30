@@ -495,17 +495,17 @@ export default function Timeline({
 
   const axisPos = compact ? AXIS_POS.compact : AXIS_POS.normal;
   const axisColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.3)'
-    : 'rgba(208, 188, 255, 0.3)';
+    ? 'rgba(40, 223, 181, 0.5)'
+    : 'rgba(208, 188, 255, 0.5)';
   const axisGlow = isPrimary
-    ? 'rgba(40, 223, 181, 0.1)'
-    : 'rgba(208, 188, 255, 0.1)';
+    ? 'rgba(40, 223, 181, 0.2)'
+    : 'rgba(208, 188, 255, 0.2)';
   const decadeColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.6)'
-    : 'rgba(208, 188, 255, 0.6)';
+    ? 'rgba(40, 223, 181, 0.85)'
+    : 'rgba(208, 188, 255, 0.85)';
   const tickColor = isPrimary
-    ? 'rgba(40, 223, 181, 0.35)'
-    : 'rgba(208, 188, 255, 0.35)';
+    ? 'rgba(40, 223, 181, 0.5)'
+    : 'rgba(208, 188, 255, 0.5)';
 
   return (
     <div className={`relative h-full ${wrapperClasses}`}>
@@ -529,9 +529,9 @@ export default function Timeline({
                 : { left: axisPos }),
               top: compact ? 8 : 12,
               bottom: compact ? 8 : 12,
-              width: 2,
+              width: 3,
               background: `linear-gradient(180deg, transparent, ${axisColor} 5%, ${axisColor} 95%, transparent)`,
-              boxShadow: `0 0 6px ${axisGlow}`,
+              boxShadow: `0 0 10px ${axisGlow}, 0 0 4px ${axisGlow}`,
             }}
           />
 
@@ -549,16 +549,17 @@ export default function Timeline({
                 }}
               >
                 <span
-                  className={`${compact ? 'text-[9px] w-7' : 'text-[11px] w-9'} font-mono font-bold ${mirror ? 'text-left pl-1' : 'text-right pr-1'} select-none`}
+                  className={`${compact ? 'text-[10px] w-8' : 'text-xs w-10'} font-mono font-bold ${mirror ? 'text-left pl-1' : 'text-right pr-1'} select-none`}
                   style={{ color: decadeColor }}
                 >
                   {decade}
                 </span>
                 <div
                   style={{
-                    width: 8,
-                    height: 1,
+                    width: 12,
+                    height: 2,
                     background: tickColor,
+                    borderRadius: 1,
                   }}
                 />
               </div>
