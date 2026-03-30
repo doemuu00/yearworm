@@ -357,7 +357,7 @@ export default function GamePage() {
           />
 
           {/* Single timeline — full width */}
-          <div className="relative flex-1 min-h-[60vh] pb-36">
+          <div className="relative flex-1 min-h-[60vh] z-50">
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayedTeam}

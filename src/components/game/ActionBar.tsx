@@ -60,7 +60,7 @@ export default function ActionBar({
     cardTeam === 'A' ? DESIGN_TOKENS.colors.teamA : DESIGN_TOKENS.colors.teamB;
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-40">
+    <div className="fixed bottom-0 inset-x-0 z-30">
       {/* Floating draggable card above the bar */}
       <AnimatePresence>
         {showDraggable && cardSong && (
